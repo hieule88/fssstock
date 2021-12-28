@@ -1,0 +1,1 @@
+BACKEND_DB = 'RISK_USER/RISK_USER@192.168.1.30:1521/orcl.fss.com.vn'
