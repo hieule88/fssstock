@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
+# Luu lai ket qua moi cach xu ly
+# Bo sung phuong phap bien doi chuoi khong dung thanh dung
+# tham so co the dieu chinh max_lag
+# lua chon co the giai thich binning
+
 def binning(datacolumn):
     max_col = datacolumn.max()
     max_col = float(max_col)
@@ -40,6 +45,16 @@ def test_stationarity(ts_data, column='', signif=0.05, series=False):
 dataset = pd.read_csv('./dataset/Features.csv')
 tickers = dataset.name.unique()
 
+def differencing(data, column, order):
+    differenced_data = data[column].diff(order)
+    differenced_data.fillna(differenced_data.mean(), inplace=True)
+    return differenced_data
+    
+def find_anomalies(squared_errors):
+    threshold = np.mean(squared_errors) + np.std(squared_errors)
+    predictions = (squared_errors >= threshold).astype(int)
+    return predictions, threshold
+    
 count_error =0
 for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
     try: 
@@ -49,11 +64,6 @@ for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
         non_stationary_cols = [col for col in ticker_feature.columns \
                                 if test_stationarity(ticker_feature, column=col) == 'Non-Stationary']
 
-        # Bo sung phuong phap bien doi chuoi khong dung thanh dung
-        def differencing(data, column, order):
-            differenced_data = data[column].diff(order)
-            differenced_data.fillna(differenced_data.mean(), inplace=True)
-            return differenced_data
         for col in non_stationary_cols:
             ticker_feature[col] = differencing(ticker_feature, col, 1)
 
@@ -63,16 +73,12 @@ for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
 
         while(1):
             try:
-                max_lag = 5 # tham so co the dieu chinh
+                max_lag = 5 
                 var_model = VAR(ticker_feature[column_to_model])
                 # select the best lag order
                 lag_results = var_model.select_order(max_lag)
 
                 selected_lag = lag_results.aic # selected_lag = 13
-                def find_anomalies(squared_errors):
-                    threshold = np.mean(squared_errors) + np.std(squared_errors)
-                    predictions = (squared_errors >= threshold).astype(int)
-                    return predictions, threshold
 
                 var = VAR(ticker_feature[column_to_model])
                 var_fitresults = var.fit(selected_lag)
@@ -80,7 +86,6 @@ for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
                 squared_errors = var_fitresults.resid.sum(axis=1)**2
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Error at Price'}, inplace=True)
-                # price_errors = binning(price_errors) lua chon co the giai thich binning
                 
                 predictions, threshold = find_anomalies(squared_errors) 
 
@@ -89,6 +94,7 @@ for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
 
                 print('\nLIST ABNORMAL DAYS OF TICKER:', p_ticker)
                 print(data[['TXDATE', 'Error at Price']].loc[data['Predictions'] ==1])
+
                 # print('Importance of Features to Price')
                 corr = pd.DataFrame(ticker_feature[column_to_model].iloc[selected_lag:, :].corr(method='pearson')['close'])
 
@@ -130,6 +136,3 @@ for p_ticker in tqdm(tickers, desc= "Var model: ", total= len(tickers)):
         count_error = count_error+1
         print(str(e) + ' at Ticker: ', p_ticker)
     break
-
-# Luu lai ket qua moi cach xu ly
-# 
