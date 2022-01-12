@@ -1,0 +1,6 @@
+pandas
+nunmpy
+tqdm
+pandas_ta
+statsmodels
+matplotlib

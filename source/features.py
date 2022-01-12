@@ -4,6 +4,7 @@ from pandas.core.frame import DataFrame
 import pandas_ta as ta
 from tqdm import tqdm
 import os 
+from scipy import interpolate
 
 list_features = [
     'adi', 'obv', 'ema', 'sma', 'wma', 'mfi', 'cmf', 'rsi', 'cci', 'roc', 'atr', 
@@ -157,16 +158,18 @@ class FeatureTicker():
         return pd.DataFrame.from_dict(dict_data)
 
 class PreProcessor():
-    def __init__(self, max_param = 14, replace_nan = 'mean'):
-        self.max_param = max_param
+    def __init__(self, max_params = 14, replace_nan = 'mean'):
+        self.max_params = max_params
         self.replace_nan = replace_nan
 
     def preprocess(self, data: pd.DataFrame):
-        data.drop(data.index[[i for i in range(-(self.max_param + 1),0)]], inplace= True)
+        data.drop(data.index[[i for i in range(-(self.max_params + 1),0)]], inplace= True)
         # add more fill nan 
         if self.replace_nan == 'mean':
             value = data.mean()
-        data.fillna(value= value, inplace= True)
+            data.fillna(value= value, inplace= True)
+        elif self.replace_nan == 'interpolate':
+            data.interpolate(method='linear', order=2, inplace=True)
         data.fillna(value= 0, inplace= True)
         return data
 
