@@ -1,0 +1,59 @@
+<div class="container-fluid" width="100%">
+    <!-- Highcharts display -->
+    <div id="container_sunburst"></div>
+</div>
+<script>
+    _sunburst_series = {{sunburst_series|safe}};
+    _active_year = {{active_year|safe}};
+   
+    // Splice in transparent for the center circle
+    Highcharts.getOptions().colors.splice(0, 0, 'transparent');
+
+    Highcharts.chart('container_sunburst', {
+        chart: {height: '100%'},
+        title: {text: 'Cơ cấu thuế TNDN năm ' + (_active_year)},
+        subtitle: {text: '(Phân bổ theo ngành kinh tế)'},
+        series: [{
+            type: 'sunburst',
+            data: _sunburst_series,
+            allowDrillToNode: true,
+            cursor: 'pointer',
+            dataLabels: {
+            format: '{point.name}',
+            filter: {
+                property: 'innerArcLength',
+                operator: '>',
+                value: 16
+            },
+            rotationMode: 'circular'
+        },
+        levels: [
+            {
+                level: 1,
+                levelIsConstant: false,
+                dataLabels: {
+                    filter: {
+                        property: 'outerArcLength',
+                        operator: '>',
+                        value: 64
+                    }
+                }
+            }, 
+            {
+                level: 2,
+                colorByPoint: true
+            },
+            {
+                level: 3,
+                colorVariation: {
+                    key: 'brightness',
+                    to: -0.5
+                }
+            }]
+        }],
+        tooltip: {
+            headerFormat: '',
+            pointFormat: 'Thuế TNDN <b>{point.name}</b> là <b>{point.value:,.2f}</b>'
+        }
+    });
+</script>

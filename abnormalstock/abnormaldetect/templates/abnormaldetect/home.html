@@ -1,0 +1,34 @@
+{% extends "sonar/layout.html" %}
+{% block title %}
+    Home - Admin mode
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <h3>Welcome to Tax Key Risk Indicator Analysis system</h3>
+    {% if message_list %}
+      <table class="table" cellspacing="0" width="100%">
+          <thead style="position: sticky;top: 0" class="thead-dark">
+          <tr>
+              <th class="header" scope="col"></th>
+              <th class="header" scope="col">MACT</th>
+              <th class="header" scope="col">MOTA</th>
+              <th class="header" scope="col">NHOMCHINH</th>
+              <th class="header" scope="col">NHOMPHU</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for message in message_list %}
+              <tr>
+                <td>{{ message.4 }}</td>
+                <td>{{ message.0 }}</td>
+                <td>{{ message.1 }}</td>
+                <td>{{ message.2 }}</td>
+                <td>{{ message.3 }}</td>
+              </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+    {% else %}
+        <p>KRI is nothing</p>
+    {% endif %}              
+{% endblock %}

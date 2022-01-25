@@ -1,0 +1,121 @@
+<div class="buttons">
+    {% for v_year in comparison_year %}
+        {% ifequal v_year active_year  %}
+            <button id="{{ v_year | lower }}" class="active">
+                {{ v_year | lower }}
+            </button>
+        {% else %}
+            <button id="{{ v_year | lower }}">
+                {{ v_year | lower }}
+            </button>
+        {% endifequal %}         
+    {% endfor %}    
+</div>                
+
+<div class="container-fluid" width="100%">
+    <!-- Highcharts display -->
+    <div id="container_comparison"></div>
+</div>
+
+<script>
+    _comparison_series = {{comparison_series|safe}};
+    _comparison_prev_series= {{comparison_prev_series|safe}};
+    _comparison_year = {{comparison_year|safe}};
+    _active_year = {{active_year|safe}};
+
+    var chart = Highcharts.chart('container_comparison', {
+    chart: {
+        type: 'column'
+    },
+    title: {
+        text: 'Năm '  + (_active_year) + ' - 5 nhóm có thuế TNDN cao nhất',
+        align: 'left'
+    },
+    subtitle: {
+        text: '(đơn vị tỷ VND)',
+        align: 'left'
+    },
+    plotOptions: {
+        series: {
+            grouping: false,
+            borderWidth: 0,
+            dataLabels: {
+                enabled: true,
+                format: '{point.y:.2f}'
+            }
+        }
+    },
+    legend: {
+        enabled: false
+    },
+    tooltip: {
+        shared: true,
+        headerFormat: '<span style="font-size: 15px">{point.point.name}</span><br/>',
+        pointFormat: '<span style="color:{point.color}">\u25CF</span> {series.name}: <b>{point.y:,.2f}</b><br/>'
+    },
+    xAxis: {
+        type: 'category',
+        max: 4,
+        labels: {
+        useHTML: true,
+        animate: true
+        }
+    },
+    yAxis: [{
+        title: {
+        text: 'Thuế TNDN'
+        },
+        showFirstLabel: false
+    }],
+    series: [
+        {color: 'rgb(158, 159, 163)',
+        pointPlacement: -0.2,
+        linkedTo: 'main',
+        data: _comparison_prev_series[_active_year].slice(),
+        name: (_active_year-1)
+        }, 
+        {name: _active_year,
+        id: 'main',
+        dataSorting: {
+            enabled: true,
+            matchByName: true
+        },
+        dataLabels: [{
+            enabled: true,
+            inside: true,
+            style: {fontSize: '16px'}
+        }],
+        colorByPoint: true,
+        data: _comparison_series[_active_year].slice()
+    }],
+    exporting: {allowHTML: true}
+    });
+    
+    _comparison_year.forEach(function (v_year) {
+        var btn = document.getElementById(v_year);
+        btn.addEventListener('click', function () {
+        document.querySelectorAll('.buttons button.active').forEach(function (active) {
+            active.className = '';
+        });
+        btn.className = 'active';
+
+        chart.update({
+        title: {
+            text: 'Năm  ' + v_year + ' - 5 nhóm có thuế TNDN cao nhất'
+        },
+        subtitle: {
+            text: 'So sánh năm ' + (v_year - 1) + ' với ' + (v_year)
+        },
+        series: [{
+            name: v_year - 1,
+            data: _comparison_prev_series[v_year].slice()
+        }, {
+            name: v_year,
+            data: _comparison_series[v_year].slice()
+        }]
+        }, true, false, {
+        duration: 800
+        });
+    });
+    });    
+</script>

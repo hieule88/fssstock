@@ -1,0 +1,33 @@
+<h3>Task activities</h3>
+<table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+      <th class="header" scope="col">REFVERSION</th>
+      <th class="header" scope="col">TASKCD</th>
+      <th class="header" scope="col">TASKINIT</th>
+      <th class="header" scope="col">TASKEND</th>
+      <th class="header" scope="col">DATADESC</th>                      
+      <th class="header" scope="col">STATUS</th>
+      <th class="header" scope="col">TASKID</th>
+      <th class="header" scope="col">REFID</th>
+      <th class="header" scope="col">LOGCONTENT</th>
+      <th class="header" scope="col">PARACONTENT</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list %}
+        <tr>
+          <td>{{ message.0 }}</td>
+          <td>{{ message.1 }}</td>
+          <td>{{ message.3 | date:'d-m-Y H:i'}}</td>
+          <td>{{ message.5 | date:'d-m-Y H:i'}}</td>
+          <td>{{ message.6 }}</td>
+          <td>{{ message.7 }}</td>
+          <td>{{ message.8 }}</td>
+          <td>{{ message.9 }}</td>
+          <td>{{ message.10 }}</td>
+          <td>{{ message.2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

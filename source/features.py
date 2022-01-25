@@ -4,7 +4,6 @@ from pandas.core.frame import DataFrame
 import pandas_ta as ta
 from tqdm import tqdm
 import os 
-from scipy import interpolate
 
 list_features = [
     'adi', 'obv', 'ema', 'sma', 'wma', 'mfi', 'cmf', 'rsi', 'cci', 'roc', 'atr', 
@@ -107,7 +106,7 @@ class FeatureTicker():
             TApopular['ichimokuICS'] = ichimoku['ICS_26']
             
             TApopular['price'] = self.close.div(self.close.max()) if (self.close.max() != 0) else self.close
-            
+
             TApopular['vol'] = self.volume.div(self.volume.max()) if (self.volume.max() != 0) else self.volume
 
             # TApopular['bw_mfi'] = 0
@@ -119,6 +118,7 @@ class FeatureTicker():
             print(str(e))
             quit()
         return TApopular
+        
     def countFA_popular(self):
         return {}
     def count_popular(self):

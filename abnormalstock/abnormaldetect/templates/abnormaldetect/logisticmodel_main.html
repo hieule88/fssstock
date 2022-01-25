@@ -1,0 +1,40 @@
+{% if message_list %}
+    <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+        <thead style="position: sticky;top: 0" class="thead-dark">
+        <tr>
+            <th class="header" scope="col">MODELID</th>
+            <th class="header" scope="col">VARIABLE</th>
+            <th class="header" scope="col">ESTIMATE</th>
+            <th class="header" scope="col">PVALUE</th>                      
+            <th class="header" scope="col">MARK</th>
+            <th class="header" scope="col">TEST_HLVALUE</th>
+            <th class="header" scope="col">TEST_PVALUE</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for message in message_list %}
+            <tr>
+            {% ifequal message.9 'P' %}
+                <td class="table-primary">{{ message.1 }}</td>  
+            {% else %}
+                {% ifequal message.9 'S' %}                       
+                    <td class="table-secondary">{{ message.1 }}</td>       
+                {% else %}
+                    {% ifequal message.9 'G' %}                       
+                        <td class="table-success">{{ message.1 }}</td>       
+                    {% else %}
+                        <td>{{ message.1 }}</td>  
+                    {% endifequal %} 
+                {% endifequal %} 
+            {% endifequal %} 
+            <td>{{ message.2 }}</td>
+            <td class="text-right">{{ message.3 | floatformat:6 }}</td>
+            <td class="text-right">{{ message.4 | floatformat:6 }}</td>  
+            <td>{{ message.5 }}</td>
+            <td class="text-right">{{ message.6 | floatformat:6 }}</td>
+            <td class="text-right">{{ message.7 | floatformat:6 }}</td>  
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}       

@@ -1,0 +1,102 @@
+<figure class="highcharts-figure">
+    <!-- Highcharts display -->
+    <div id="container_heatmap"></div>
+</figure>
+<script>
+    _heatmap_series = {{heatmap_series|safe}};
+    _heatmap_y = {{heatmap_y|safe}};
+    _heatmap_x = {{heatmap_x|safe}};
+   
+    function getPointCategoryName(point, dimension) {
+        var series = point.series,
+            isY = dimension === 'y',
+            axis = series[isY ? 'yAxis' : 'xAxis'];
+        return axis.categories[point[isY ? 'y' : 'x']];
+    }
+
+    Highcharts.chart('container_heatmap', {
+        chart: {
+            type: 'heatmap',
+            marginTop: 40,
+            marginBottom: 80,
+            plotBorderWidth: 1
+        },
+
+        title: {
+            text: 'Thuế TNDN của nhóm DTNT gian lận theo thời gian'
+        },
+
+        xAxis: {
+            categories: _heatmap_x
+        },
+
+        yAxis: {
+            categories: _heatmap_y,
+            title: null,
+            reversed: true
+        },
+
+        accessibility: {
+            point: {
+            descriptionFormatter: function (point) {
+                var ix = point.index + 1,
+                xName = getPointCategoryName(point, 'x'),
+                yName = getPointCategoryName(point, 'y'),
+                val = point.value;
+                return ix + '. ' + xName + ': ' + yName + ', ' + val + '.';
+            }
+            }
+        },
+
+        colorAxis: {
+            min: 0,
+            minColor:'#FF8900', 
+            maxColor:'#04BD24'
+        },
+
+        legend: {
+            align: 'right',
+            layout: 'vertical',
+            margin: 0,
+            verticalAlign: 'top',
+            y: 25,
+            symbolHeight: 280
+        },
+
+        tooltip: {
+            formatter: function () {
+            return '<b>' + getPointCategoryName(this.point, 'x') + ': ' +
+                this.point.value + ' </b> in <br><b>' + getPointCategoryName(this.point, 'y') + '</b>';
+            }
+        },
+
+        series: [{
+            name: 'Thuế TNDN của DTNT gian lận',
+            borderWidth: 1,
+            data: _heatmap_series,
+            colorByPoint: true,
+            dataLabels: {
+                enabled: true,
+                color: '#000000'
+            }
+        }],
+
+        responsive: {
+            rules: [{
+            condition: {
+                maxWidth: 500
+            },
+            chartOptions: {
+                yAxis: {
+                labels: {
+                    formatter: function () {
+                    return this.value.charAt(0);
+                    }
+                }
+                }
+            }
+            }]
+        }
+
+    });
+</script>

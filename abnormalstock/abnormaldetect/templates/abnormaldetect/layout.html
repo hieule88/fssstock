@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>{% block title %}{% endblock %}</title>
+    {% load static %}
+        <link rel="stylesheet" href="{% static 'sonar/bootstrap.min.css' %}"/>
+        <link rel="stylesheet" href="{% static 'sonar/dataTables.bootstrap4.min.css' %}"/>
+        <link rel="stylesheet" href="{% static 'sonar/font-awesome.min.css' %}"/>
+
+        <script src="{% static 'sonar/jquery-3.3.1.slim.min.js' %}"></script>
+        <script src="{% static 'sonar/popper.min.js' %}"></script>
+        <script src="{% static 'sonar/bootstrap.min.js' %}"></script>
+        <script src="{% static 'sonar/jquery.min.js' %}"></script>
+        <script src="{% static 'sonar/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'sonar/dataTables.bootstrap4.min.js' %}"></script>
+
+        <script src="{% static 'sonar/bootstrap-table-export.min.js' %}"></script>
+        <script src="{% static 'sonar/bootstrap-table.min.js' %}"></script>
+        <script src="{% static 'sonar/tableExport.min.js' %}"></script>
+        <script src="{% static 'sonar/jspdf.min.js' %}"></script>
+        <script src="{% static 'sonar/jspdf.plugin.autotable.js' %}"></script>
+
+        <script src="{% static 'sonar/jquery.table2excel.js' %}"></script>
+        
+        <script src="{% static 'sonar/highcharts.js' %}"></script>
+        <script src="{% static 'sonar/highcharts-more.js' %}"></script>
+        <script src="{% static 'sonar/data.js' %}"></script>
+        <script src="{% static 'sonar/drilldown.js' %}"></script>
+        <script src="{% static 'sonar/sunburst.js' %}"></script>
+        <script src="{% static 'sonar/heatmap.js' %}"></script>
+        <script src="{% static 'sonar/treemap.js' %}"></script>
+        <script src="{% static 'sonar/exporting.js' %}"></script>
+        <script src="{% static 'sonar/export-data.js' %}"></script>
+        <script src="{% static 'sonar/accessibility.js' %}"></script>
+
+        <link href="{% static 'sonar/favicon.ico' %}" rel="shortcut icon">
+        <style>
+            .header {
+                position: sticky;
+                top:0;
+            }
+             body {
+                 height: 800px;
+             }
+             .bs-example{
+    	        margin: 20px;
+            }             
+        </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'sonar/site.css' %}"/>
+</head>
+
+<body>
+<div class="navbar">
+    <a href="{% url 'taskdata' %}" class="navbar-item">Dataset</a>
+    <a href="{% url 'taskpreprocessing' %}" class="navbar-item">Preprocessing</a>
+    <a href="{% url 'tasklabelling' %}" class="navbar-item">Labelling</a>
+    <a href="{% url 'taskclassification' %}" class="navbar-item">Classification</a>
+    <a href="{% url 'taskmodelling' %}" class="navbar-item">Modelling</a>
+    <a href="{% url 'tasksubmit' %}" class="navbar-item">Auto Run</a> 
+    <a href="{% url 'taskquery' %}" class="navbar-item">Query</a> 
+    <a href="{% url 'taskparameter' %}" class="navbar-item">Parameter</a>
+    <a href="{% url 'taskETL' %}" class="navbar-item">ETL</a>        
+    <a href="{% url 'taskcommand' %}" class="navbar-item">Command</a>        
+    <a href="{% url 'userindex' %}" class="navbar-item">User mode</a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="navbar-item">Log Out</a>
+    {% else %}
+        <a href="{% url 'signin' %}"  class="navbar-item">Sign In</a>
+    {% endif %}
+</div>
+<div class="body-content">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% block content %}
+        {% endblock %}
+
+        {% block javascript %}
+        {% endblock javascript %}    
+    {% endif %}
+
+    <hr/>
+    <footer>
+        <p>
+            {% if user.is_authenticated %}
+                ©FSS 2021 Welcome {{ user.username }}!
+            {% else %}
+                ©FSS 2021 You are not logged in
+            {% endif %}
+        </p> 
+    </footer>
+</div>
+</body>
+</html>

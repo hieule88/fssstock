@@ -1,0 +1,468 @@
+<form action = "" method = "POST">
+    <div class="form-row">
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="inputStatus">X variable</label>
+                <select id="x_variable" class="form-control-sm custom-select">
+                    <option selected disabled>Choose X variable</option>
+                    {% for subject in arr_variables%}
+                        <option value="{{subject}}">{{subject}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="inputStatus">Y variable</label>
+                <select id="y_variable" class="form-control-sm custom-select">
+                    <option selected disabled>Choose Y variable</option>
+                    {% for subject in arr_variables%}
+                        <option value="{{subject}}">{{subject}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="inputStatus">Z (size) variable</label>
+                <select id="z_variable" class="form-control-sm custom-select">
+                    <option selected disabled>Choose size variable</option>
+                    {% for subject in arr_variables%}
+                        <option value="{{subject}}">{{subject}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label for="inputStatus">Type of chart</label>
+                <select id="c_variable" class="form-control-sm custom-select">
+                    <option selected disabled>Choose type of chart</option>
+                    <option value="B">3D Bubble</option>
+                    <option value="S">Scatter</option>
+                    <option value="H">Histogram (Z)</option>
+                    <option value="X">Boxplot (Z)</option>
+                </select>
+            </div>
+        </div>
+        <a href="javascript:send_display()">Display chart</a>
+    </div>
+    <input type="hidden" id="message_list_html" name="message_list" value="{{ message_list }}">
+    <input type="hidden" id="message_list_scorecard_html" name="message_list_scorecard" value="{{ message_list_scorecard }}">
+    <input type="hidden" id="message_list_tree_html" name="message_list_tree" value="{{ message_list_tree }}">
+    <input type="hidden" id="queryset_dashboard_html" name="queryset_dashboard" value="{{ queryset_dashboard }}">
+    <input type="hidden" id="queryset_columns_html" name="queryset_columns_html" value="{{ queryset_columns }}">
+    <input type="hidden" id="arr_variables_html" name="arr_variables" value="{{ arr_variables }}">
+    <input type="hidden" id="linkid_html" name="linkid" value="{{ linkid }}">
+</form>
+<figure class="highcharts-figure">
+    <!-- Highcharts display -->
+    <div id="container_display"></div>
+</figure>
+
+{% block javascript %}
+<script>
+    //filter outlier
+    function filterOutliers(someArray) {
+        if(someArray.length < 4)
+        return someArray;
+        let values, q1, q3, iqr, maxValue, minValue;
+
+        values = someArray.slice().sort( (a, b) => a - b);//copy array fast and sort
+        if((values.length / 4) % 1 === 0){//find quartiles
+        q1 = 1/2 * (values[(values.length / 4)] + values[(values.length / 4) + 1]);
+        q3 = 1/2 * (values[(values.length * (3 / 4))] + values[(values.length * (3 / 4)) + 1]);
+        } else {
+        q1 = values[Math.floor(values.length / 4 + 1)];
+        q3 = values[Math.ceil(values.length * (3 / 4) + 1)];
+        }
+        iqr = q3 - q1;
+        maxValue = q3 + iqr * 1.5;
+        minValue = q1 - iqr * 1.5;
+        return values.filter((x) => (x >= minValue) && (x <= maxValue));
+    }
+
+    //for heatmap
+    function getPointCategoryName(point, dimension) {
+        var series = point.series,
+            isY = dimension === 'y',
+            axis = series[isY ? 'yAxis' : 'xAxis'];
+        return axis.categories[point[isY ? 'y' : 'x']];
+    }
+
+    function send_display()
+    {
+        // parameters
+        var x_variable = document.getElementById("x_variable").value;
+        var y_variable = document.getElementById("y_variable").value;
+        var z_variable = document.getElementById("z_variable").value;
+        var c_variable = document.getElementById("c_variable").value;
+
+        //prepare array data for chart
+        var _arr_x = [];
+        var _arr_y = [];
+        var _arr_z = [];
+        var _arr_scatter_fraud = [];
+        var _arr_scatter_normal = [];
+        var _arr_bubble_fraud = [];
+        var _arr_bubble_normal = [];
+        var _col_x_val;
+        var _col_y_val;
+        var _col_z_val;
+
+        // raw queryset ... convert string to array
+        var _rawcolumns = document.getElementById("queryset_columns_html").value;
+        var _rawvalues = document.getElementById("queryset_dashboard_html").value;
+        text =_rawcolumns.replace(/'/g, '"');
+        v_column = JSON.parse(text);
+        text =_rawvalues.replace(/'/g, '"');
+        text =text.replace(/nan/g, '"nan"');
+        text =text.replace(/None/g, '"None"');
+        v_dataset = JSON.parse(text);
+        //console.log("=====>" + _rawcolumns);
+        //console.log("=====>" + _rawvalues);
+        // Which selected column. default is first option
+        var col_x=0;
+        var col_y=0;
+        var col_z=0;
+        var col_c=0;
+        var col_mst=0;
+        var col_nam=0;
+        var col_gianlan=0;
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === x_variable) {
+                col_x = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === y_variable) {
+                col_y = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === z_variable) {
+                col_z = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === c_variable) {
+                col_c = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === "MST") {
+                col_mst = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === "NAM") {
+                col_nam = i;
+                break;
+            }            
+        }
+        for(var i = 0; i < v_column.length; i++) {
+            if (v_column[i] === "GIANLAN") {
+                col_gianlan = i;
+                break;
+            }            
+        }
+        //prepare array data for scatter chart
+        var _arr_scatter_fraud = [];
+        var _arr_scatter_normal = [];
+        var _arr_bubble_fraud = [];
+        var _arr_bubble_normal = [];
+        var _col_x_val;
+        var _col_y_val;
+        var _col_z_val;
+        for(var i = 0; i < v_dataset.length; i++) {
+            //process null, nan value
+            v_row = v_dataset[i];
+            if (isNaN(v_row[col_x])) {
+                _col_x_val = 0;
+            } else {
+                _col_x_val = v_row[col_x];
+            }
+            if (isNaN(v_row[col_y])) {
+                _col_y_val = 0;
+            } else {
+                _col_y_val = v_row[col_y];
+            }
+            if (isNaN(v_row[col_z])) {
+                _col_z_val = 0;
+            } else {
+                _col_z_val = v_row[col_z];
+            }
+
+            //Prepare array data for chart
+            //_arr_x.push(_col_x_val);
+            //_arr_y.push(_col_y_val);
+            if (c_variable==='S') {
+                //for scatter
+                if (v_row[col_gianlan]==="0") {
+                    _arr_scatter_normal.push([_col_x_val, _col_y_val]);
+                } else {
+                    _arr_scatter_fraud.push([_col_x_val, _col_y_val]);
+                }
+            } else if (c_variable==='H') {
+                //for histogram
+                _arr_z.push(_col_z_val);
+            } else if (c_variable==='X') {
+                //for boxplot
+                _arr_z.push(_col_z_val);
+            } else {
+                //for bubble
+                if (v_row[col_gianlan]==="0") {
+                    _arr_bubble_normal.push([_col_x_val, _col_y_val, _col_z_val]);
+                } else {
+                    _arr_bubble_fraud.push([_col_x_val, _col_y_val, _col_z_val]);
+                }
+            }
+        }
+
+        //Plot chart
+        var _chart_position = 'container_display';
+        var _chart_title = 'Variable distribution normal/fraud';
+        var _chart_type;
+        if (c_variable==='S') {
+            //scatter
+            _chart_type = 'scatter';
+            var displayChart = new Highcharts.chart({
+                chart: {
+                    renderTo: _chart_position,
+                    type: _chart_type,
+                    zoomType: 'xy'
+                },
+                title: {
+                    text: _chart_title
+                },
+                xAxis: {
+                    title: {
+                    enabled: true,
+                    text: x_variable
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    showLastLabel: true
+                },
+                yAxis: {
+                    title: {
+                    text: y_variable
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'left',
+                    verticalAlign: 'top',
+                    x: 100,
+                    y: 70,
+                    floating: true,
+                    backgroundColor: Highcharts.defaultOptions.chart.backgroundColor,
+                    borderWidth: 1
+                },
+                plotOptions: {
+                    scatter: {
+                    marker: {
+                        radius: 5,
+                        states: {
+                        hover: {
+                            enabled: true,
+                            lineColor: 'rgb(100,100,100)'
+                        }
+                        }
+                    },
+                    states: {
+                        hover: {
+                        marker: {
+                            enabled: false
+                        }
+                        }
+                    },
+                    tooltip: {
+                        headerFormat: '<b>{series.name}</b><br>',
+                        pointFormat: '{point.x}, {point.y}'
+                    }
+                    }
+                },
+                series: [{
+                    name: 'Normal',
+                    color: 'rgba(223, 83, 83, .5)',
+                    data: _arr_scatter_normal
+                }, {
+                    name: 'Fraud',
+                    color: 'rgba(119, 152, 191, .5)',
+                    data: _arr_scatter_fraud
+                }]
+            });
+        } else if (c_variable==='H') {
+            //histogram
+            var displayChart = new Highcharts.chart(_chart_position, {
+                title: {
+                    text: _chart_title
+                },
+                xAxis: [{
+                    title: { text: 'Data' },
+                    alignTicks: false
+                }, {
+                    title: { text: 'Histogram' },
+                    alignTicks: false,
+                    opposite: true
+                }],
+                yAxis: [{
+                    title: { text: 'Data' }
+                }, {
+                    title: { text: 'Histogram' },
+                    opposite: true
+                }],
+                plotOptions: {
+                    histogram: {
+                        accessibility: {
+                            pointDescriptionFormatter: function (point) {
+                                var ix = point.index + 1,
+                                    x1 = point.x.toFixed(3),
+                                    x2 = point.x2.toFixed(3),
+                                    val = point.y;
+                                return ix + '. ' + x1 + ' to ' + x2 + ', ' + val + '.';
+                            }
+                        }
+                    }
+                },
+                series: [{
+                    name: 'Histogram',
+                    type: 'histogram',
+                    xAxis: 1,
+                    yAxis: 1,
+                    baseSeries: 's1',
+                    zIndex: -1
+                }, {
+                    name: 'Data',
+                    type: 'scatter',
+                    data: _arr_z,
+                    id: 's1',
+                    marker: {
+                        radius: 1.5
+                    }
+                }]
+            });            
+        } else if (c_variable==='X') {
+            //Outlier
+            var _arr_z_tmp = [];
+            var _arr_z_outlier = [];
+            _arr_z_tmp = filterOutliers(_arr_z);
+            for(var i = 0; i < _arr_z_tmp.length; i++) {
+                _arr_z_outlier.push([0, _arr_z_tmp[i]]);
+            }
+            //Boxplot
+            _chart_type = 'boxplot';
+            var displayChart = Highcharts.chart({
+                chart: {
+                    renderTo: _chart_position,
+                    type: _chart_type,
+                },
+                title: {
+                    text: _chart_title
+                },
+                legend: {
+                    enabled: false
+                },
+                xAxis: {
+                    categories: [1],
+                    title: {
+                        text: z_variable
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: 'Observations'
+                    }
+                },
+                series: [{
+                    name: 'Observations',
+                    data: [_arr_z],
+                    tooltip: {
+                        headerFormat: '<em>Variable {point.key}</em><br/>'
+                    }
+                }, {
+				name: 'Outliers',
+				color: Highcharts.getOptions().colors[0],
+				type: 'scatter',
+				data: _arr_z_outlier,
+				marker: {
+					fillColor: 'white',
+					lineWidth: 1,
+					lineColor: Highcharts.getOptions().colors[0]
+				},
+				tooltip: {
+					pointFormat: 'Observation: {point.y}'
+				}
+			}]
+            });            
+        } else {
+            //default is bubble
+            _chart_type = 'bubble';
+            var displayChart = Highcharts.chart({
+                chart: {
+                    renderTo: _chart_position,
+                    type: _chart_type,
+                    plotBorderWidth: 1,
+                    zoomType: 'xy'
+                },
+                title: {
+                    text: _chart_title
+                },
+                xAxis: {
+                    title: {
+                    enabled: true,
+                    text: x_variable
+                    },
+                    gridLineWidth: 1,
+                    accessibility: {
+                        rangeDescription: 'Range: 0 to 100.'
+                    }
+                },
+
+                yAxis: {
+                    title: {
+                    text: y_variable
+                    },
+                    startOnTick: false,
+                    endOnTick: false,
+                    accessibility: {
+                        rangeDescription: 'Range: 0 to 100.'
+                    }
+                },
+
+                series: [{
+                    name: 'normal',
+                    data: _arr_bubble_normal,
+                    marker: {
+                        fillColor: {
+                            radialGradient: { cx: 0.4, cy: 0.3, r: 0.7 },
+                            stops: [
+                                [0, 'rgba(255,255,255,0.5)'],
+                                [1, Highcharts.color(Highcharts.getOptions().colors[0]).setOpacity(0.5).get('rgba')]
+                            ]
+                        }
+                    }
+                }, {
+                    name: 'fraud',
+                    data: _arr_bubble_fraud,
+                    marker: {
+                        fillColor: {
+                            radialGradient: { cx: 0.4, cy: 0.3, r: 0.7 },
+                            stops: [
+                                [0, 'rgba(255,255,255,0.5)'],
+                                [1, Highcharts.color(Highcharts.getOptions().colors[1]).setOpacity(0.5).get('rgba')]
+                            ]
+                        }
+                    }
+                }]
+            });
+        }
+    }
+</script>
+{% endblock javascript %}

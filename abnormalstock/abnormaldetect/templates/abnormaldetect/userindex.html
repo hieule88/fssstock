@@ -1,0 +1,90 @@
+{% extends "abnormaldetect/base.html" %}
+{% block title %}
+    Home - User mode
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        Taxcode: {{ form.TaxCode }} <input type="submit" name="para_submit" value="Submit">
+    </form>
+    {% if message_list %}
+        <table cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+                <th class="header" scope="col">TAXCODE</th>
+                <th class="header" scope="col">NAME</th>
+                <th class="header" scope="col">TYPE</th>
+                <th class="header" scope="col">ESTABLISED</th>
+                <th class="header" scope="col">INDUSTRY</th>
+                <th class="header" scope="col">PROVINCE</th>
+                <th class="header" scope="col">FRAUD</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in message_list %}
+                <tr>
+                    <td><a href="{% url 'userriskprofile' message.0 %}">{{ message.0 }}</a></td>
+                    <td>{{ message.1 }}</td>
+                    <td>{{ message.2 }}</td>
+                    <td>{{ message.3 }}</td>
+                    <td>{{ message.4 }}</td>
+                    <td>{{ message.5 }}</td>
+                    <td>{{ message.6 }}</td>                
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>    
+    {% endif %}  
+
+    {% if message_list_rating %}
+        <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+                <th class="header" scope="col">MODELID</th>
+                <th class="header" scope="col">YEAR</th>
+                <th class="header" scope="col">FRAUD</th>
+                <th class="header" scope="col">SCORE</th>
+                <th class="header" scope="col">VARIABES</th>
+                <th class="header" scope="col" style="width:5%"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in message_list_rating %}
+                {% ifequal message.2 'Y' %}
+                <tr class="table-danger">
+                {% else %}
+                    <tr class="table-light">
+                {% endifequal %}              
+                    <td><a href="{% url 'usermodel' message.0 %}"  title="{{ message.6 }}">{{ message.0 }}</a></td>
+                    <td>{{ message.1 }}</td>
+                    <td>{{ message.2 }}</td>
+                    <td>{{ message.3 }}</td>
+                    <td>{{ message.4 }}</td>
+                    <td>
+                        <a href="#rowdetail{{ forloop.counter }}" data-toggle="collapse">+</a>
+                        <tr id="rowdetail{{ forloop.counter }}" class="collapse">
+                            <td colspan="5" >
+                                <table class="message_list">
+                                    <thead>
+                                        <tr>
+                                            <th>ITEM</th>
+                                        </tr>
+                                    </thead>   
+                                    <tbody>
+                                        <tr class="table-light">
+                                            <td>{{ message.5 }}</td>
+                                        </tr>
+                                </tbody>                                                 
+                                </table>
+                            </td>
+                        </tr>                                                                              
+                    </td>                     
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>    
+    {% endif %}      
+{% endif %}  
+{% endblock %}

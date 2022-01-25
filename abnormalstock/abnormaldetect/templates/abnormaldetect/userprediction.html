@@ -1,0 +1,64 @@
+{% extends "sonar/base.html" %}
+{% block title %}
+    Prediction
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-8 mb-0">
+                {{ form.DataVersion|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.TypeOfPrediction|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MaxRows|as_crispy_field }}
+            </div>                
+        </div>
+        <input type="submit" name="para_submit" value="Query">
+        <input type="submit" name="para_export" value="Export">
+        <br>
+        {% if message_list %}
+            <a href="javascript:export_data()">Export table data</a>
+            {% ifequal typeofprediction 'S' %}
+                {% include "sonar/userprediction_S.html" %}
+            {% endifequal %}           
+
+            {% ifequal typeofprediction 'A' %}
+                {% include "sonar/userprediction_A.html" %}
+            {% endifequal %}           
+
+            {% ifequal typeofprediction 'B' %}
+                {% include "sonar/userprediction_B.html" %}
+            {% endifequal %}           
+
+            <script>
+                $('#sortTable').DataTable();
+            </script>
+            <a href="javascript:export_data()">Export table data</a>
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}          
+        </form>
+    {% endif %}  
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function export_data() {
+        $("#sortTable").table2excel({
+            filename: "tab2exl",
+            name: "QuerySet",
+            fileext: ".xls",
+            exclude_img: true,
+            exclude_links: true,
+            exclude: ".dntinclude",
+            exclude_inputs: true
+        });  
+    }
+</script>
+{% endblock javascript %}

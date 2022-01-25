@@ -1,0 +1,29 @@
+<h4 class="mt-2">TTR</h4>
+{% if message_list_ttr %}
+<table class="table" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">TU_KY</th>
+        <th class="header" scope="col">DEN_KY</th>
+        <th class="header" scope="col">KETQUA</th>
+        <th class="header" scope="col">MA_CQT</th>
+        <th class="header" scope="col">HANHVI</th>
+        <th class="header" scope="col">TRUYTHU</th>
+        <th class="header" scope="col">LOAI</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list_ttr %}
+        <tr>
+            <td>{{ message.0 | date:'d M Y' }}</td>
+            <td>{{ message.1 | date:'d M Y' }}</td>
+            <td>{{ message.2 }}</td>
+            <td>{{ message.3 }}</td>
+            <td>{{ message.5 }}</td>
+            <td class="text-right">{{ message.6 | floatformat:2 }}</td>
+            <td>{{ message.7 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}      

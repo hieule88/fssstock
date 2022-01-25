@@ -1,0 +1,70 @@
+<div class="container-fluid" width="100%">
+    <!-- Highcharts display -->
+    <div id="container_scatter"></div>
+</div>
+<script>
+    _scatter_data = {{scatter_data|safe}};
+    _current_year = {{active_year|safe}};
+
+    Highcharts.chart('container_scatter', {
+        chart: {
+            type: 'scatter',
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Thuế TNDN của các DTNT gian lận ' + (_current_year)
+        },
+        subtitle: {
+            text: '(đơn vị Tỷ VND))'
+        },
+        xAxis: {
+            title: {
+            enabled: true,
+            text: 'Thuế TNDN'
+            },
+            startOnTick: true,
+            endOnTick: true,
+            showLastLabel: true
+        },
+        yAxis: {
+            title: {
+            text: 'Tỷ lệ (%)'
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'left',
+            verticalAlign: 'top',
+            x: 100,
+            y: 70,
+            floating: true,
+            backgroundColor: Highcharts.defaultOptions.chart.backgroundColor,
+            borderWidth: 1
+        },
+        plotOptions: {
+            scatter: {
+            marker: {
+                radius: 5,
+                states: {
+                hover: {
+                    enabled: true,
+                    lineColor: 'rgb(100,100,100)'
+                }
+                }
+            },
+            states: {
+                hover: {
+                marker: {
+                    enabled: false
+                }
+                }
+            },
+            tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '{point.x} cm, {point.y} kg'
+            }
+            }
+        },
+        series: _scatter_data
+    });
+</script>

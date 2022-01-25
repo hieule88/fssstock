@@ -1,0 +1,103 @@
+<h4 class="mt-2">Statistic</h4>
+{% if message_list_statistic %}
+<table class="table table-hover" id="sortTable"  cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MACT</th>
+        <th class="header" scope="col">MOTA</th>
+        <th class="header" scope="col">NAM</th>
+        <th class="header" scope="col">GIATRI</th>
+        <th class="header" scope="col" style="width:5%"></th>
+    </tr>
+    </thead>
+    <tbody>
+        <div class="container" id="accordion">
+            <div class="card">
+                {% for message in message_list_statistic %}
+                {% ifequal message.28 'O' %}
+                    <tr class="table-danger">
+                {% else %}
+                    <tr class="table-light">
+                {% endifequal %}                                       
+                  <td>{{ message.0 }}</td>
+                  <td>{{ message.1 }}</td>
+                  <td>{{ message.2 }}</td>
+                  <td class="text-right">{{ message.3 | floatformat:2 }}</td>
+                  <td>
+                    <a href="#rowstastic{{ forloop.counter }}" data-toggle="collapse">+</a>
+                    <tr id="rowstastic{{ forloop.counter }}" class="collapse">
+                        <td colspan="5" >
+                            <table class="message_list">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Count</th>
+                                        <th>Mean</th>
+                                        <th>Max</th>
+                                        <th>Min</th>
+                                        <th>Stdev</th>
+                                        <th>Median</th>
+                                        <th>IQR1</th>
+                                        <th>IQR3</th>
+                                    </tr>
+                                </thead>   
+                                <tbody>
+                                    {% ifequal message.29 'O' %}
+                                        <tr class="table-danger">
+                                    {% else %}
+                                        <tr class="table-light">
+                                    {% endifequal %}                                       
+                                        <td>ALL</td>
+                                        <td class="text-right">{{ message.4 | floatformat:0 }}</td>
+                                        <td class="text-right">{{ message.5 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.6 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.7 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.8 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.9 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.10 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.11 | floatformat:2 }}</td>
+                                    </tr>
+                                    {% ifequal message.30 'O' %}
+                                        <tr class="table-danger">
+                                    {% else %}
+                                        <tr class="table-light">
+                                    {% endifequal %}                                       
+                                        <td>INDUSTRY</td>
+                                        <td class="text-right">{{ message.12 | floatformat:0 }}</td>
+                                        <td class="text-right">{{ message.13 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.14 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.15 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.16 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.17 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.18 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.19 | floatformat:2 }}</td>
+                                    </tr>
+                                    {% ifequal message.31 'O' %}
+                                    <tr class="table-danger">
+                                    {% else %}
+                                        <tr class="table-light">
+                                    {% endifequal %}                                       
+                                        <td>PROVINCE</td>
+                                        <td class="text-right">{{ message.20 | floatformat:0 }}</td>
+                                        <td class="text-right">{{ message.21 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.22 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.23 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.24 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.25 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.26 | floatformat:2 }}</td>
+                                        <td class="text-right">{{ message.27 | floatformat:2 }}</td>
+                                    </tr>
+                                </tbody>                                                 
+                            </table>
+                        </td>
+                      </tr>                                                                              
+                 </td>                                
+                </tr>
+            {% endfor %}
+            </div>
+        </div>
+    </tbody>
+</table>
+{% else %}
+    <p>NOTHING TO SHOW</p>
+{% endif %}         

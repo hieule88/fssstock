@@ -1,7 +1,7 @@
 from os import replace
 import pandas as pd
 from pandas.core.algorithms import diff
-from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import adfuller, kpss, zivot_andrews
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -11,10 +11,11 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class VarModel():
-    def __init__(self, max_lag=5, diff_type= 'mean'):
+    def __init__(self, max_lag=5, diff_type= 'mean', stationarity_type= 'adf'):
         self.count_error = 0
         self.max_lag = max_lag
         self.diff_type = diff_type
+        self.stationarity_type = stationarity_type 
 
     def binning(datacolumn):
         max_col = datacolumn.max()
@@ -33,16 +34,43 @@ class VarModel():
 
         return datacolumn
 
-    def test_stationarity(self, ts_data, column='', signif=0.05, series=False):
-        if series:
-            adf_test = adfuller(ts_data, autolag='AIC')
-        else:
-            adf_test = adfuller(ts_data[column], autolag='AIC')
-        p_value = adf_test[1]
-        if p_value <= signif:
-            test_result = "Stationary"
-        else:
-            test_result = "Non-Stationary"
+    def test_stationarity(self, ts_data, column='', signif=0.05, series=False, type = 'adf'):
+        if type == 'adf':
+            if series:
+                adf_test = adfuller(ts_data, autolag='AIC')
+            else:
+                adf_test = adfuller(ts_data[column], autolag='AIC')
+            p_value = adf_test[1]
+            if p_value <= signif:
+                test_result = True
+            else:
+                test_result = False
+        elif type == 'kpss':
+            if series:
+                kpsstest = kpss(ts_data, regression='c', nlags="auto")
+            else:
+                kpsstest = kpss(ts_data[column], regression='c', nlags="auto")
+            p_value = kpsstest[1]
+            if p_value < signif:
+                test_result = False
+            else:
+                test_result = True
+        elif type == 'adf_kpss':
+            if self.test_stationarity(ts_data, column, signif, series, type= 'adf') \
+                and self.test_stationarity(ts_data, column, signif, series, type= 'kpss'):
+                return True
+            else:
+                return False
+        elif type == 'zivot_andrews':
+            if series:
+                zatest = zivot_andrews(ts_data, regression='c', nlags="auto")
+            else:
+                zatest = zivot_andrews(ts_data[column], regression='c', nlags="auto")
+            p_value = zatest[1]
+            if p_value > signif:
+                test_result = False
+            else:
+                test_result = True
         return test_result
 
     def differencing(self, data, column, order):
@@ -50,7 +78,14 @@ class VarModel():
             differenced_data = data[column].diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
             return differenced_data
-        
+        elif self.diff_type == 'log':
+            differenced_data = data[column].apply(np.log)
+            differenced_data = np.log(data[column])
+            return differenced_data
+        elif self.diff_type == 'saiphan':
+            # ADD SAI PHAN
+            return
+
     def find_anomalies(self, squared_errors):
         threshold = np.mean(squared_errors) + np.std(squared_errors)
         predictions = (squared_errors >= threshold).astype(int)
@@ -61,7 +96,7 @@ class VarModel():
         txdate = ticker_feature['TXDATE']
         ticker_feature.drop(columns='TXDATE', inplace=True)
         non_stationary_cols = [col for col in ticker_feature.columns \
-                                if self.test_stationarity(ticker_feature, column=col) == 'Non-Stationary']
+                                if not self.test_stationarity(ticker_feature, column=col, type= self.stationarity_type)]
 
         for col in non_stationary_cols:
             ticker_feature[col] = self.differencing(ticker_feature, col, 1)

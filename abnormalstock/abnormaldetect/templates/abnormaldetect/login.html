@@ -1,0 +1,16 @@
+{% extends "sonar/layout.html" %}
+{% block title %}
+    Sign In
+{% endblock %}
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        {% for key, value in form.errors.items %}
+            {{value}}
+        {% endfor %}
+        <p><label>User name:</label>{{form.username}}</p>
+        <p><label>Password:</label>{{form.password}}</p>
+        <input type="hidden" name="next" value="/"/>
+        <input type="submit" value="Signin"/>
+    </form>
+{% endblock %}

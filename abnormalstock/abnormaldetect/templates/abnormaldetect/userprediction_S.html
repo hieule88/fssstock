@@ -1,0 +1,86 @@
+<h3>Model accuracy</h3>
+<table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">ID_MODEL</th>
+        <th class="header" scope="col">METHOD</th>
+        <th class="header" scope="col">TOTAL</th>
+        <th class="header" scope="col">FRAUD</th>
+        <th class="header" scope="col">ACCURACY</th>
+        <th class="header" scope="col">PRECISION</th>
+        <th class="header" scope="col">RECALL</th>
+        <th class="header" scope="col">AUC</th>
+        <th class="header" scope="col">F_ONE</th>
+        <th class="header" scope="col">SPECIFICITY</th>
+        <th class="header" scope="col" style="width:5%"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list %}
+        <tr>
+            <!--Version-->
+            {% ifequal message.14 'P' %}
+                <td class="table-primary">
+                    <a href="{% url 'userpredictversion' message.0 %}">{{ message.1 }}</a>
+                </td>  
+            {% else %}
+                {% ifequal message.14 'S' %}                       
+                    <td class="table-secondary">
+                        <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
+                    </td>       
+                {% else %}
+                    {% ifequal message.14 'G' %}                       
+                        <td class="table-success">
+                            <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
+                        </td>       
+                    {% else %}
+                        <td>
+                            <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
+                        </td>  
+                    {% endifequal %} 
+                {% endifequal %} 
+            {% endifequal %} 
+            <!--Link to show tree rule-->
+            {% ifequal message.17 'T' %}
+                <td><a href="{% url 'decisiontreemodel' message.16 %}">{{ message.15 }}</a></td>
+            {% else %}
+                {% ifequal message.17 'R' %}                       
+                    <td><a href="{% url 'randomforestmodel' message.16 %}">{{ message.15 }}</a></td>
+                {% else %}
+                    <td>{{ message.15 }}</td>
+                {% endifequal %} 
+            {% endifequal %} 
+            <!--CNT_CASES-->
+            <td>{{ message.19 | floatformat:0 }}</td>
+            <!--FRAUD_CASES-->
+            <td>{{ message.20 | floatformat:0 }}</td>
+            <!--Detail information-->
+            <td class="text-right">{{ message.6 | floatformat:4 }}</td>
+            <td class="text-right">{{ message.7 | floatformat:4 }}</td>
+            <td class="text-right">{{ message.8 | floatformat:4 }}</td>  
+            <td class="text-right">{{ message.9 | floatformat:4 }}</td>
+            <td class="text-right">{{ message.11 | floatformat:4 }}</td>
+            <td class="text-right">{{ message.12 | floatformat:4 }}</td>
+            <td>
+                <a href="#rowdetail{{ forloop.counter }}" data-toggle="collapse">+</a>
+                <tr id="rowdetail{{ forloop.counter }}" class="collapse">
+                    <td colspan="10" >
+                        <table class="message_list">
+                            <thead>
+                                <tr>
+                                    <th>VARIABES</th>
+                                </tr>
+                            </thead>   
+                            <tbody>
+                                <tr class="table-light">
+                                    <td>{{ message.21 }}</td>
+                                </tr>
+                        </tbody>                                                 
+                        </table>
+                    </td>
+                </tr>                                                                              
+            </td>                 
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

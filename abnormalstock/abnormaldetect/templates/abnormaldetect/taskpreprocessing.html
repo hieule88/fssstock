@@ -1,0 +1,84 @@
+{% extends "sonar/layout.html" %}
+{% block title %}
+    Preprocessing
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.Data|as_crispy_field }}
+            </div>                
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.BALANCEDATAMETHOD|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.CATEGORICALIMPUTER|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.CATEGORICALOUTLIERS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.CHOOSEONEHOTENCODER|as_crispy_field }}
+            </div>                
+        </div>  
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.COMBINECATEGORICAL|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.NUMERICIMPUTER|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.NUMERICOUTLIERS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_COMPONENTS|as_crispy_field }}
+            </div>                
+        </div>  
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_FOLDS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.PARAMETERFORBALANCEDATA|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.PCALABELLING|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.RATEHOLDCOL|as_crispy_field }}
+            </div>                
+        </div>          
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.RATEHOLDROW|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.SCALER|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.SVD_SOLVER|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.TEST_SIZE|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.WHIS_BOXPLOT|as_crispy_field }}
+            </div>                
+        </div>        
+        <input type="submit" name="para_submit" value="Submit">
+        <br>
+        {% if message_list %}
+            <h3>Task log: Preprocessing</h3>
+            {% include "sonar/tasklog_basic.html" %}
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}            
+        </form>
+    {% endif %}  
+{% endblock %}

@@ -1,0 +1,79 @@
+<h4 class="mt-2">KRI</h4>
+{% if message_list_kri %}
+<table class="table table-hover" id="sortTable"  cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MACT</th>
+        <th class="header" scope="col">MOTA</th>
+        <th class="header" scope="col">2015</th>
+        <th class="header" scope="col">2016</th>
+        <th class="header" scope="col">2017</th>
+        <th class="header" scope="col">2018</th>
+        <th class="header" scope="col">2019</th>
+        <th class="header" scope="col">2020</th>
+        <th class="header" scope="col">2021</th>
+        <th class="header" scope="col">2022</th>
+        <th class="header" scope="col" style="width:5%"></th>
+    </tr>
+    </thead>
+    <tbody>
+        <div class="container" id="accordion">
+            <div class="card">
+                {% for message in message_list_kri %}
+                <tr class="table-light">
+                    <td>{{ message.0 }}</td>
+                    <td>{{ message.1 }}</td>
+                    <td class="text-right">{{ message.2 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.3 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.4 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.5 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.6 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.7 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.8 | floatformat:2 }}</td>
+                    <td class="text-right">{{ message.9 | floatformat:2 }}</td>
+                  <td>
+                    <a href="#rowkriscore{{ forloop.counter }}" data-toggle="collapse">+</a>
+                    <tr id="rowkriscore{{ forloop.counter }}" class="collapse">
+                        <td colspan="10" >
+                            <table class="message_list">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50%">Version</th>
+                                        <th>2015</th>
+                                        <th>2016</th>
+                                        <th>2017</th>
+                                        <th>2018</th>
+                                        <th>2019</th>
+                                        <th>2020</th> 
+                                        <th>2021</th> 
+                                        <th>2022</th> 
+                                    </tr>
+                                </thead>   
+                                <tbody>
+                                    {% if message.10 != 'DEFAULT' %}
+                                        <tr class="table-light">
+                                            <td>{{ message.10 }}</td>
+                                            <td class="text-right">{{ message.11 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.12 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.13 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.14 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.15 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.16 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.17 | floatformat:0 }}</td>
+                                            <td class="text-right">{{ message.18 | floatformat:0 }}</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>                                                 
+                            </table>
+                        </td>
+                      </tr>                                                                              
+                 </td>                                
+                </tr>
+            {% endfor %}
+            </div>
+        </div>
+    </tbody>
+</table>
+{% else %}
+    <p>NOTHING TO SHOW</p>
+{% endif %}         

@@ -1,0 +1,37 @@
+{% extends "sonar/base.html" %}
+{% block title %}
+    KRI
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        KRI: {{ form.KRISet }} <input type="submit" name="para_submit" value="Submit">
+    </form>
+    {% if message_list %}
+        <table class="table" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+                <th class="header" scope="col"></th>
+                <th class="header" scope="col">MACT</th>
+                <th class="header" scope="col">MOTA</th>
+                <th class="header" scope="col">NHOMCHINH</th>
+                <th class="header" scope="col">NHOMPHU</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in message_list %}
+                <tr>
+                  <td>{{ message.4 }}</td>
+                  <td>{{ message.0 }}</td>
+                  <td>{{ message.1 }}</td>
+                  <td>{{ message.2 }}</td>
+                  <td>{{ message.3 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}       
+{% endif %}  
+{% endblock %}

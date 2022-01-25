@@ -1,0 +1,37 @@
+<h4 class="mt-2">ITEM</h4>
+{% if message_list_item %}
+<table class="table" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MACT</th>
+        <th class="header" scope="col">MOTA</th>
+        <th class="header" scope="col">2015</th>
+        <th class="header" scope="col">2016</th>
+        <th class="header" scope="col">2017</th>
+        <th class="header" scope="col">2018</th>
+        <th class="header" scope="col">2019</th>
+        <th class="header" scope="col">2020</th>
+        <th class="header" scope="col">2021</th>
+        <th class="header" scope="col">2022</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list_item %}
+        <tr>
+          <td>{{ message.0 }}</td>
+          <td>{{ message.1 }}</td>
+          <td class="text-right">{{ message.2 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.3 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.4 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.5 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.6 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.7 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.8 | floatformat:0 }}</td>
+          <td class="text-right">{{ message.9 | floatformat:0 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+  <p>ITEM is nothing</p>
+{% endif %}     
