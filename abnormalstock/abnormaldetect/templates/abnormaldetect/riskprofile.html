@@ -1,4 +1,4 @@
-{% extends "sonar/layout.html" %}
+{% extends "abnormaldetect/layout.html" %}
 {% block title %}
     Risk profile
 {% endblock %}
@@ -28,22 +28,22 @@
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="kri">
-                    {% include "sonar/riskprofile_kri.html" %}
+                    {% include "abnormaldetect/riskprofile_kri.html" %}
                 </div>
                 <div class="tab-pane fade" id="item">
-                    {% include "sonar/riskprofile_item.html" %}
+                    {% include "abnormaldetect/riskprofile_item.html" %}
                 </div>
                 <div class="tab-pane fade" id="rating">
-                    {% include "sonar/riskprofile_rating.html" %}
+                    {% include "abnormaldetect/riskprofile_rating.html" %}
                 </div>
                 <div class="tab-pane fade" id="statistic">
-                    {% include "sonar/riskprofile_statistic.html" %}
+                    {% include "abnormaldetect/riskprofile_statistic.html" %}
                 </div>
                 <div class="tab-pane fade" id="ttr">
-                    {% include "sonar/riskprofile_ttr.html" %}
+                    {% include "abnormaldetect/riskprofile_ttr.html" %}
                 </div>
                 <div class="tab-pane fade" id="profile">
-                    {% include "sonar/riskprofile_profile.html" %}
+                    {% include "abnormaldetect/riskprofile_profile.html" %}
                 </div>
             </div>
 

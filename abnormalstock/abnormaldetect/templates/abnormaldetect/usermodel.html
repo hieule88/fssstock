@@ -1,4 +1,4 @@
-{% extends "sonar/base.html" %}
+{% extends "abnormaldetect/base.html" %}
 {% block title %}
     Model information
 {% endblock %}
@@ -81,10 +81,10 @@
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="summary">
-                    {% include "sonar/usermodel_summary.html" %}
+                    {% include "abnormaldetect/usermodel_summary.html" %}
                 </div>
                 <div class="tab-pane fade" id="rule">
-                    {% include "sonar/usermodel_rule.html" %}
+                    {% include "abnormaldetect/usermodel_rule.html" %}
                 </div>
             </div>
 

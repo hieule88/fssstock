@@ -1,4 +1,4 @@
-{% extends "sonar/layout.html" %}
+{% extends "abnormaldetect/layout.html" %}
 {% block title %}
     Query data
 {% endblock %}
@@ -35,43 +35,43 @@
         {% if message_list %}
             <a href="javascript:export_data()">Export table data</a>
             {% ifequal typeofquery 'D' %}
-                {% include "sonar/taskquery_D.html" %}
+                {% include "abnormaldetect/taskquery_D.html" %}
             {% endifequal %}           
 
             {% ifequal typeofquery 'A' %}
-                {% include "sonar/taskquery_A.html" %}
+                {% include "abnormaldetect/taskquery_A.html" %}
             {% endifequal %}           
 
             {% ifequal typeofquery 'L' %}
-                {% include "sonar/taskquery_L.html" %}
+                {% include "abnormaldetect/taskquery_L.html" %}
             {% endifequal %}     
 
             {% ifequal typeofquery 'P' %}
-                {% include "sonar/taskquery_P.html" %}
+                {% include "abnormaldetect/taskquery_P.html" %}
             {% endifequal %} 
 
             {% ifequal typeofquery 'S' %}
-                {% include "sonar/taskquery_S.html" %}
+                {% include "abnormaldetect/taskquery_S.html" %}
             {% endifequal %} 
 
             {% ifequal typeofquery 'I' %}
-                {% include "sonar/taskquery_I.html" %}
+                {% include "abnormaldetect/taskquery_I.html" %}
             {% endifequal %}             
 
             {% ifequal typeofquery 'K' %}
-                {% include "sonar/taskquery_K.html" %}
+                {% include "abnormaldetect/taskquery_K.html" %}
             {% endifequal %}             
 
             {% ifequal typeofquery 'R' %}
-                {% include "sonar/taskquery_R.html" %}
+                {% include "abnormaldetect/taskquery_R.html" %}
             {% endifequal %}  
 
             {% ifequal typeofquery 'X' %}
-                {% include "sonar/taskquery_X.html" %}
+                {% include "abnormaldetect/taskquery_X.html" %}
             {% endifequal %}             
 
             {% ifequal typeofquery 'Z' %}
-                {% include "sonar/taskquery_Z.html" %}
+                {% include "abnormaldetect/taskquery_Z.html" %}
             {% endifequal %}    
 
             <script>

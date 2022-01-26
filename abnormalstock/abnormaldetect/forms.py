@@ -1,7 +1,8 @@
 from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
 from abnormaldetect.models import LogMessage
-from abnormaldetect import cmdbackend
+from abnormaldetect import cmdbackend, admin
+
 from abnormalstock import settings
 
 class UserIndexForm(forms.Form):
@@ -20,12 +21,28 @@ class UserPredictionForm(forms.Form):
     #Init every time load page
     def __init__(self, *args, **kwargs):
         super(UserPredictionForm, self).__init__(*args, **kwargs)
-        set_dataversion = cmdbackend.task_para_list('VERROOTDESC')
-        ref_dataversion = [(row[0], row[1]) 
-                    for row in set_dataversion]            
+        # set_dataversion = cmdbackend.task_para_list('VERROOTDESC')
+        # CHANGE TO READ FROM DATABASE
+        set_dataversion = ['POPULAR', 'VOLUMN', 'VOLATILITY', 'TREND', 'MOMENTUM', 'ADDFA', 'FULL']
+        ref_dataversion = [(type, type) 
+                    for i, type in enumerate(set_dataversion)]          
         self.fields['DataVersion'] = forms.ChoiceField(
             choices=ref_dataversion )      
-    TypeOfPrediction = forms.ChoiceField(label = "Type", choices  = settings.PREDICTION_CHOICES)
+    StationarityTest = forms.ChoiceField(label = "STATIONARITYTEST", choices  = admin.PARAMS['STATIONARITYTEST'])
+    DiffTest = forms.ChoiceField(label = "DIFFTYPE", choices  = admin.PARAMS['DIFFTYPE'])
+    ReplaceNan = forms.ChoiceField(label = "REPLACENAN", choices  = admin.PARAMS['REPLACENAN'])
+    MinTradeDay = forms.ChoiceField(label = "MINTRADEDAY", choices  = admin.PARAMS['MINTRADEDAY'])
+
+    Method = forms.ChoiceField(label = "METHOD", choices  = admin.PARAMS['METHOD'])
+    MaxLag = forms.ChoiceField(label = "MAXLAG", choices  = admin.PARAMS['MAXLAG'])
+    FeatureImpotance = forms.ChoiceField(label = "FEATUREIMPORTANCE", choices  = admin.PARAMS['FEATUREIMPORTANCE'])
+
+    FIThreshold = forms.ChoiceField(label = "FITHRESHOLD", choices  = admin.PARAMS['FITHRESHOLD'])
+    TopFeature = forms.ChoiceField(label = "TOPFEATURE", choices  = admin.PARAMS['TOPFEATURE'])
+    ScoreConvert = forms.ChoiceField(label = "SCORECONVERT", choices  = admin.PARAMS['SCORECONVERT'])
+    ScoreThreshold = forms.ChoiceField(label = "SCORETHRESHOLD", choices  = admin.PARAMS['SCORETHRESHOLD'])
+    AbnormThreshold = forms.ChoiceField(label = "ABNORMTHRESHOLD", choices  = admin.PARAMS['ABNORMTHRESHOLD'])
+
     MaxRows = forms.IntegerField(label = "Max rows", required = False, initial=1000)
     
 class UserInquiryForm(forms.Form):

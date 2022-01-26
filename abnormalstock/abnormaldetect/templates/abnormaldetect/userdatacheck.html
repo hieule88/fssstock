@@ -1,4 +1,4 @@
-{% extends "sonar/base.html" %}
+{% extends "abnormaldetect/base.html" %}
 {% block title %}
     Data checking
 {% endblock %}
@@ -36,12 +36,12 @@
                 <tr>
                     <td>{{ message.1 }}</td>
                     <td>{{ message.6 }}</td>
-                    {% ifequal message.1 'KHAC' %}
+                    {% if message.1 == 'KHAC' %}
                         <td>{{ message.2 }}</td> 
                     {% else %}
                         <!-- <td><a href="{% url 'userreconcile' message.0 %}">{{ message.2 }}</a></td> -->
                         <td><a href="{% url 'userdatacheckdetail' message.6 message.7 message.0 %}">{{ message.2 }}</a></td> 
-                    {% endifequal %}                      
+                    {% endif %}                      
                     <td class="text-right">{{ message.3 | floatformat:0 }}</td>
                     <td class="text-right">{{ message.4 | floatformat:0 }}</td>
                     <td class="text-right">{{ message.5 | floatformat:2 }}</td>

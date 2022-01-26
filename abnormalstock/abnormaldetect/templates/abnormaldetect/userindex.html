@@ -52,11 +52,11 @@
             </thead>
             <tbody>
             {% for message in message_list_rating %}
-                {% ifequal message.2 'Y' %}
+                {% if message.2 == 'Y' %}
                 <tr class="table-danger">
                 {% else %}
                     <tr class="table-light">
-                {% endifequal %}              
+                {% endif %}              
                     <td><a href="{% url 'usermodel' message.0 %}"  title="{{ message.6 }}">{{ message.0 }}</a></td>
                     <td>{{ message.1 }}</td>
                     <td>{{ message.2 }}</td>

@@ -19,17 +19,17 @@
     {% for message in message_list %}
         <tr>
             <!--Version-->
-            {% ifequal message.14 'P' %}
+            {% if message.14 == 'P' %}
                 <td class="table-primary">
                     <a href="{% url 'userpredictversion' message.0 %}">{{ message.1 }}</a>
                 </td>  
             {% else %}
-                {% ifequal message.14 'S' %}                       
+                {% if message.14 == 'S' %}                       
                     <td class="table-secondary">
                         <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
                     </td>       
                 {% else %}
-                    {% ifequal message.14 'G' %}                       
+                    {% if message.14 == 'G' %}                       
                         <td class="table-success">
                             <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
                         </td>       
@@ -37,19 +37,19 @@
                         <td>
                             <a href="{% url 'userpredictversion' message.18 %}">{{ message.1 }}</a>
                         </td>  
-                    {% endifequal %} 
-                {% endifequal %} 
-            {% endifequal %} 
+                    {% endif %} 
+                {% endif %} 
+            {% endif %} 
             <!--Link to show tree rule-->
-            {% ifequal message.17 'T' %}
+            {% if message.17 == 'T' %}
                 <td><a href="{% url 'decisiontreemodel' message.16 %}">{{ message.15 }}</a></td>
             {% else %}
-                {% ifequal message.17 'R' %}                       
+                {% if message.17 == 'R' %}                       
                     <td><a href="{% url 'randomforestmodel' message.16 %}">{{ message.15 }}</a></td>
                 {% else %}
                     <td>{{ message.15 }}</td>
-                {% endifequal %} 
-            {% endifequal %} 
+                {% endif %} 
+            {% endif %} 
             <!--CNT_CASES-->
             <td>{{ message.19 | floatformat:0 }}</td>
             <!--FRAUD_CASES-->

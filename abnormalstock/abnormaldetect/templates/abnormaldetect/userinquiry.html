@@ -1,4 +1,4 @@
-{% extends "sonar/base.html" %}
+{% extends "abnormaldetect/base.html" %}
 {% block title %}
     Inquiry
 {% endblock %}
@@ -25,13 +25,13 @@
         <br>
         {% if message_list %}
             <a href="javascript:export_data()">Export table data</a>
-            {% ifequal typeofinquiry 'D' %}
-                {% include "sonar/userinquiry_D.html" %}
-            {% endifequal %}           
+            {% if typeofinquiry == 'D' %}
+                {% include "abnormaldetect/userinquiry_D.html" %}
+            {% endif %}           
 
-            {% ifequal typeofinquiry 'A' %}
-                {% include "sonar/userinquiry_A.html" %}
-            {% endifequal %}           
+            {% if typeofinquiry == 'A' %}
+                {% include "abnormaldetect/userinquiry_A.html" %}
+            {% endif %}           
 
             <script>
                 $('#sortTable').DataTable();

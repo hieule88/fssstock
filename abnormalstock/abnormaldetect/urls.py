@@ -17,7 +17,8 @@ home_list_view = views.HomeListView.as_view(
 
 urlpatterns = [
     #User mode version
-    path("", views.base, name="base"),
+    # path("base/", views.base, name="base"),
+    path("", views.userindex, name="userindex"),
     path("userindex/", views.userindex, name="userindex"),
     path("userdatacheck/", views.userdatacheck, name="userdatacheck"),
     path("userdatacheckdetail/<str:refyear>/<str:refarea>/<str:reflinkid>/", views.userdatacheckdetail, name="userdatacheckdetail"),
@@ -60,4 +61,4 @@ urlpatterns = [
     path('login/',auth_views.LoginView.as_view(template_name="abnormaldetect/login.html"), name="login"),
     path("about/", views.about, name="about"),
     path("help/", views.help, name="help"),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] #+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

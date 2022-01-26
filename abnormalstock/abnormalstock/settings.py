@@ -16,7 +16,6 @@ import os.path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -37,8 +36,8 @@ LOGIN_REDIRECT_URL = "/"
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-DEBUG = False
+DEBUG = True
+# DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -150,16 +149,38 @@ USE_L10N = True
 
 USE_TZ = True
 
+PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
+MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media/')
+TEMPLATE_DIRS = [
+    os.path.join(PROJECT_PATH, 'templates/').replace('\\','/'),
+    "C:/work/FSS_stock/abnormalstock/abnormaldetect/templates".replace('\\','/'),
+]
+
+# TEMPLATE_LOADERS = (
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+# #     'django.template.loaders.eggs.Loader',
+# )
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-#STATIC_URL = '/static/'
-STATIC_ROOT = ''
+
+# #STATIC_URL = '/static/'
+# STATIC_ROOT = 'C:/work/FSS_stock/abnormalstock/abnormaldetect/static'
+# STATICFILES_DIRS = ( os.path.join('static'), )
+# MEDIA_URL = 'C:/work/FSS_stock/abnormalstock/abnormaldetect/media/'
+# MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'media/')
+
+REPOSITORY_ROOT = os.path.dirname(BASE_DIR)
 
 STATIC_URL = '/static/'
+STATIC_ROOT = "C:\work\FSS_stock\abnormalstock\abnormaldetect\static".replace('\\','/')
+# STATICFILES_DIRS = ["C:\work\FSS_stock\abnormalstock\abnormaldetect\static".replace('\\','/'),]
 
-STATICFILES_DIRS = ( os.path.join('static'), )
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(REPOSITORY_ROOT, 'abnormaldetect/media/')
+
 # iterable
 YESNO_CHOICES =(
     ("Y", "Yes"),
@@ -226,8 +247,7 @@ RISKPROFILE_CHOICES =(
 
 PREDICTION_CHOICES =(
     ("A", "All model"),
-    ("B", "Best rank model"),
-    ("S", "Choose model"),
+    ("V", "VAR"),
 )
 
 ETL_CHOICES =(

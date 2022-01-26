@@ -1,4 +1,4 @@
-{% extends "sonar/layout.html" %}
+{% extends "abnormaldetect/layout.html" %}
 {% block title %}
     Fraud information
 {% endblock %}
@@ -28,22 +28,22 @@
             </ul>
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="kri">
-                    {% include "sonar/frauditem_kri.html" %}
+                    {% include "abnormaldetect/frauditem_kri.html" %}
                 </div>
                 <div class="tab-pane fade" id="item">
-                    {% include "sonar/frauditem_item.html" %}
+                    {% include "abnormaldetect/frauditem_item.html" %}
                 </div>
                 <div class="tab-pane fade" id="rating">
-                    {% include "sonar/frauditem_rating.html" %}
+                    {% include "abnormaldetect/frauditem_rating.html" %}
                 </div>
                 <div class="tab-pane fade" id="statistic">
-                    {% include "sonar/frauditem_statistic.html" %}
+                    {% include "abnormaldetect/frauditem_statistic.html" %}
                 </div>
                 <div class="tab-pane fade" id="ttr">
-                    {% include "sonar/frauditem_ttr.html" %}
+                    {% include "abnormaldetect/frauditem_ttr.html" %}
                 </div>
                 <div class="tab-pane fade" id="profile">
-                    {% include "sonar/frauditem_profile.html" %}
+                    {% include "abnormaldetect/frauditem_profile.html" %}
                 </div>
             </div>
 

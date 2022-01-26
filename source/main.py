@@ -28,9 +28,9 @@ if __name__ == '__main__':
     replace_nan = args.replacenan
     max_params = max(TA_params.values())
 
-    dataset = pd.DataFrame(pd.read_csv('./dataset/TradingHistory.csv'))
+    dataset = pd.DataFrame(pd.read_csv('C:/work/FSS_stock/dataset/TradingHistory.csv'))
     dataset.drop(columns=['Unnamed: 0'], inplace=True)
-    tickers = pd.DataFrame(pd.read_csv('./dataset/Ticker.csv')['TICKER'])
+    tickers = pd.DataFrame(pd.read_csv('C:/work/FSS_stock/dataset/Ticker.csv')['TICKER'])
     var_model = VarModel(max_lag=max_lag, diff_type=diff_type)
     preprocessor = PreProcessor(max_params=max_params, replace_nan=replace_nan)
 

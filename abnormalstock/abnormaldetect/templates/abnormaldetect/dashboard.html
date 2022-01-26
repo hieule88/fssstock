@@ -1,4 +1,4 @@
-{% extends "sonar/base.html" %}
+{% extends "abnormaldetect/base.html" %}
 {% block title %}
     Dashboard
 {% endblock %}
@@ -36,31 +36,31 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="main">
-                {% include "sonar/dashboard_main.html" %}
+                {% include "abnormaldetect/dashboard_main.html" %}
             </div>
             <div class="tab-pane fade" id="pie">
-                {% include "sonar/dashboard_pie.html" %}
+                {% include "abnormaldetect/dashboard_pie.html" %}
             </div>
             <div class="tab-pane fade" id="comparison">
-                {% include "sonar/dashboard_comparison.html" %}
+                {% include "abnormaldetect/dashboard_comparison.html" %}
             </div>
             <div class="tab-pane fade" id="drilldown">
-                {% include "sonar/dashboard_drilldown.html" %}
+                {% include "abnormaldetect/dashboard_drilldown.html" %}
             </div>
             <div class="tab-pane fade" id="bubble">
-                {% include "sonar/dashboard_bubble.html" %}
+                {% include "abnormaldetect/dashboard_bubble.html" %}
             </div>
             <div class="tab-pane fade" id="heatmap">
-                {% include "sonar/dashboard_heatmap.html" %}
+                {% include "abnormaldetect/dashboard_heatmap.html" %}
             </div>
             <div class="tab-pane fade" id="sunburst">
-                {% include "sonar/dashboard_sunburst.html" %}
+                {% include "abnormaldetect/dashboard_sunburst.html" %}
             </div>
             <div class="tab-pane fade" id="scatter">
-                {% include "sonar/dashboard_scatter.html" %}
+                {% include "abnormaldetect/dashboard_scatter.html" %}
             </div>
             <div class="tab-pane fade" id="riskprofile">
-                {% include "sonar/dashboard_riskprofile.html" %}
+                {% include "abnormaldetect/dashboard_riskprofile.html" %}
             </div>
         </div>
         <hr>

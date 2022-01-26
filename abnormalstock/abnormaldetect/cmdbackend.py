@@ -6,7 +6,7 @@ from abnormaldetect import tasks
 import pickle
 import base64
 import matplotlib.pyplot as plt
-
+from abnormaldetect.source.main import RUNVARMODEL
 
 #User checking data
 def func_modelid_variable(v_modelid):    
@@ -135,17 +135,12 @@ def user_kriset(v_kriset):
         return results
     except:
         # Re-raise the exception.
-        raise   
+        raise
 
  #User prediction
-def user_prediction(v_refversion, v_typeofprediction, v_maxrows):    
+def user_prediction(v_refversion, hyperparams, v_maxrows):    
     try:
-        con = cx_Oracle.connect(settings.BACKEND_DB)
-        cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('USER_PREDICTION', [v_refversion, v_typeofprediction, v_maxrows, outcursor])
-        results = outcursor.getvalue()
-        return results     
+        return RUNVARMODEL(v_refversion, hyperparams)
     except:
         # Re-raise the exception.
         raise        

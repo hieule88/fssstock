@@ -15,14 +15,10 @@ import traceback
 import os
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
+from datetime import datetime  
 # Create user views here.
 #-----------------------------------------------------------------------------------------------
 @csrf_exempt
-def base(request):
-    print(os.path.exists("templates/abnormaldetect/base.html"))
-    return render(request, "templates/abnormaldetect/base.html")
-
 def userindex(request):
     try:
         taxcode=''
@@ -40,6 +36,7 @@ def userindex(request):
             form = UserIndexForm()
             queryset = ''
             taxcode=''
+
         context = {
             "message_list": queryset,
             "message_list_rating": queryset_rating,
@@ -47,11 +44,11 @@ def userindex(request):
             "form": form
         }
         #Show result on screen
-        return render(request, "templates/abnormaldetect/userindex.html", context)
+        return render(request, "abnormaldetect/userindex.html", context)
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
-        return render(request, "templates/abnormaldetect/userindex.html", context)
+        return render(request, "abnormaldetect/userindex.html", context)
 
 @csrf_exempt
 def usermodel(request, reflinkid=''):
@@ -254,27 +251,43 @@ def userkriset(request):
 def userprediction(request):
     try:
         queryset = ''
-        typeofprediction=''
+        method = ''
         if request.method == "POST":
             form = UserPredictionForm(request.POST)
             if form.is_valid():
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
-                    dataversion = cd['DataVersion']
-                    typeofprediction = cd['TypeOfPrediction']
+                    method = cd['Method']
+                    
+                    # dataversion = cd['DataVersion']
+                    # abnormthresh = cd['AbnormThreshold']
+                    # difftest = cd['DiffTest']
+                    # fithresh = cd['FIThreshold']
+                    # featureimportance = cd['FeatureImpotance']
+                    # maxlag = cd['MaxLag']
+                    # mintradeday = cd['MinTradeDay']
+                    # replacenan = cd['ReplaceNan']
+                    # scoreconvert = cd['ScoreConvert']
+                    # scorethresh = cd['ScoreThreshold']
+                    # stationtest = cd['StationarityTest']
+                    # topfeature = cd['TopFeature']
+
                     maxrows = cd['MaxRows']
-                    queryset =  cmdbackend.user_prediction(dataversion,typeofprediction,maxrows)
+                    queryset =  cmdbackend.user_prediction(datetime.now().strftime("%D:%H:%M:%S"), cd,maxrows)
+                    # queryset = [['None', 'None','None', 'None','None','None']]
+
         else:
             form = UserPredictionForm()   
-            queryset = ''
+            queryset = [['None', 'None','None', 'None','None','None']]
         context = {
             "message_list": queryset,
-            "typeofprediction": typeofprediction,
+            "method": method,
             "form": form
         }    
         #Show result on screen
         return render(request, "abnormaldetect/userprediction.html", context)
     except Exception as e:
+        print(e)
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
         return render(request, "abnormaldetect/userprediction.html", context)

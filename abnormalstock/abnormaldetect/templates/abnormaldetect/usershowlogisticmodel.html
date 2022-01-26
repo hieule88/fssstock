@@ -1,4 +1,4 @@
-{% extends "sonar/base.html" %}
+{% extends "abnormaldetect/base.html" %}
 {% block title %}
     Logistic regression
 {% endblock %}
@@ -16,10 +16,10 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="main">
-                {% include "sonar/logisticmodel_main.html" %}
+                {% include "abnormaldetect/logisticmodel_main.html" %}
             </div>
             <div class="tab-pane fade" id="scorecard">
-                {% include "sonar/logisticmodel_scorecard.html" %}
+                {% include "abnormaldetect/logisticmodel_scorecard.html" %}
             </div>
         </div>
 

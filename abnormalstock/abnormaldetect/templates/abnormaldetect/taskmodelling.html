@@ -1,4 +1,4 @@
-{% extends "sonar/layout.html" %}
+{% extends "abnormaldetect/layout.html" %}
 {% block title %}
     Modelling
 {% endblock %}
@@ -16,7 +16,7 @@
         <br>
         {% if message_list %}
             <h3>Task log: Modelling</h3>
-            {% include "sonar/tasklog_basic.html" %}
+            {% include "abnormaldetect/tasklog_basic.html" %}
         {% else %}
             <p>Data is empty</p>
         {% endif %}            

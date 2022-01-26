@@ -1,4 +1,4 @@
-{% extends "sonar/layout.html" %}
+{% extends "abnormaldetect/layout.html" %}
 {% block title %}
     Execute command
 {% endblock %}
@@ -22,7 +22,7 @@
         <br>
         {% if message_list %}
             {% ifequal command_type 'R' %}
-                {% include "sonar/taskcommand_R.html" %}
+                {% include "abnormaldetect/taskcommand_R.html" %}
             {% endifequal %}           
         {% else %}
             <p>Nothing to display</p>

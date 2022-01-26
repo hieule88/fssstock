@@ -13,6 +13,15 @@ curss,con_obj = connect_data()
 sql_query_var = 'select CDNAME,CDVAL from ALLCODE2 where CDUSER=:s'
 curss.execute(sql_query_var,{"s":'H'})
 data_var = curss.fetchall()
+
+def Convert(tup, di):
+    for a, b in tup:
+        di.setdefault(a, []).append(b)
+    return di
+PARAMS = {}
+PARAMS = Convert(data_var, PARAMS)
+for k in PARAMS.keys():
+    PARAMS[k] = [(v , v) for i , v in enumerate(PARAMS[k])]
 data_var_dict =dict(data_var)
 ##
 
