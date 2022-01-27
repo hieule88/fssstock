@@ -1,0 +1,30 @@
+<h4 class="mt-2">Company profile</h4>
+<p>VON: bilion VND.</p>
+{% if message_list_profile %}
+<table class="table" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MST</th>
+        <th class="header" scope="col">TENDD</th>
+        <th class="header" scope="col">LHKT</th>
+        <th class="header" scope="col">NGAY_CAP</th>
+        <th class="header" scope="col">NGANHKT</th>
+        <th class="header" scope="col">VON</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list_profile %}
+        <tr>
+          <td>{{ message.0 }}</td>
+          <td>{{ message.1 }}</td>
+          <td>{{ message.2 }}</td>
+          <td>{{ message.3 | date:'d M Y' }}</td>
+          <td>{{ message.4 }}</td>
+          <td class="text-right">{{ message.5 | floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+  <p>Profile is nothing</p>
+{% endif %}      

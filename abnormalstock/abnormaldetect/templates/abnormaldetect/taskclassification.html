@@ -1,0 +1,59 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Classification
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.Data|as_crispy_field }}
+            </div>                
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.NAME_METHOD|as_crispy_field }}
+            </div> 
+            <div class="form-group col-md-2 mb-0">
+                {{ form.C|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.CRITERION|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MAX_DEPTH|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MAX_FEATURE|as_crispy_field }}
+            </div>                
+        </div>        
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_ESTIMATORS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.PENALTY|as_crispy_field }}
+            </div>    
+            <div class="form-group col-md-2 mb-0">
+                {{ form.SOLVER|as_crispy_field }}
+            </div>                          
+            <div class="form-group col-md-2 mb-0">
+                {{ form.SCORE_THRESHOLD|as_crispy_field }}
+            </div>   
+            <div class="form-group col-md-2 mb-0">
+                {{ form.REFTTR|as_crispy_field }}
+            </div>                
+        </div>        
+        <input type="submit" name="para_submit" value="Submit">
+        <br>
+        {% if message_list %}
+            <h3>Task log: Classification</h3>
+            {% include "abnormaldetect/tasklog_basic.html" %}
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}            
+        </form>
+{% endif %}
+{% endblock %}

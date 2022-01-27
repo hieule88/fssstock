@@ -1,0 +1,29 @@
+<div class="text-right mx-auto"> 
+    <i>Unit in 1000 VND</i>
+</div>
+<table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MODEL NAME</th>
+        <th class="header" scope="col">NUM ABNORM DAYS</th>
+        <th class="header" scope="col">MACK</th>
+        <th class="header" scope="col">CAC NGAY NGUY CO</th>
+        <th class="header" scope="col">DIEM SO CAC NGAY NGUY CO</th>
+        <th class="header" scope="col">IMPORTANCE FEATURE</th>
+        <th class="header" scope="col" style="width:5%"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list %}
+        <tr>
+            <td>{{ 'VAR' }}</td>
+            <td>{{ message.0 }}</td>
+            <td>{{ message.1 }}</td>
+            <td>{{ message.2 }}</td>
+            <td>{{ message.3 }}</td>
+            <td>{{ message.4 }}</td>             
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+

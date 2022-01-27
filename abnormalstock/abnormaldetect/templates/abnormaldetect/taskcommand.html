@@ -1,0 +1,48 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Execute command
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.cmdType|as_crispy_field }}
+            </div>                
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.cmdContent|as_crispy_field }}
+            </div>                
+        </div>
+        <input type="submit" name="para_submit" value="Run">
+        <input type="submit" name="para_export" value="Export">
+        <br>
+        {% if message_list %}
+            {% ifequal command_type 'R' %}
+                {% include "abnormaldetect/taskcommand_R.html" %}
+            {% endifequal %}           
+        {% else %}
+            <p>Nothing to display</p>
+        {% endif %}          
+    </form>
+    {% endif %}  
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function export_data() {
+        $("#sortTable").table2excel({
+            filename: "tab2exl",
+            name: "QuerySet",
+            fileext: ".xls",
+            exclude_img: true,
+            exclude_links: true,
+            exclude: ".dntinclude",
+            exclude_inputs: true
+        });  
+    }
+</script>
+{% endblock javascript %}

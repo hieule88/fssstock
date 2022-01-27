@@ -1,0 +1,49 @@
+<div class="container-fluid" width="100%">
+    <!-- Highcharts display -->
+    <div id="container_bubble"></div>
+    </div>
+<script>
+    _bubble_series = {{bubble_series|safe}};
+    _active_year = {{active_year|safe}};
+   
+    Highcharts.chart('container_bubble', {
+        chart: {
+            type: 'packedbubble',
+            height: '100%'
+        },
+        title: {
+            text: 'Tổng quan Thuế TNDN theo ngành kinh tế và địa bàn năm ' + (_active_year)
+        },
+        tooltip: {
+            useHTML: true,
+            pointFormat: '<b>{point.name}:</b> {point.value:,.2f}'
+        },
+        plotOptions: {
+            packedbubble: {
+            minSize: '30%',
+            maxSize: '120%',
+            zMin: 0,
+            zMax: 1000,
+            layoutAlgorithm: {
+                splitSeries: false,
+                gravitationalConstant: 0.02
+            },
+            dataLabels: {
+                enabled: true,
+                format: '{point.name}',
+                filter: {
+                property: 'y',
+                operator: '>',
+                value: 250
+                },
+            style: {
+                color: 'black',
+                textOutline: 'none',
+                fontWeight: 'normal'
+            }
+            }
+            }
+        },
+        series: _bubble_series
+    });
+</script>

@@ -1,0 +1,30 @@
+{% extends "abnormaldetect/base.html" %}
+{% block title %}
+    Tree modal rules
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% if user.is_authenticated %}
+    {% if message_list %}
+        {% for message in message_list %}
+            <div class="card bg-dark text-black">
+                    <img class="card-img" src="data:image/jpeg;base64,{{ message.1 }}" alt="Card image">
+                <div class="card-img-overlay">
+                    <h5 class="card-title">
+                        <a href="#" data-toggle="tooltip" title="{{ message.0|linebreaks }}">Rules</a>
+                    </h5>
+                    <p class="card-text">{{ message.0|linebreaks }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Nothing to show</p>
+    {% endif %}       
+{% endif %}           
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}
+

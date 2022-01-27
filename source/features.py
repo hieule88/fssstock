@@ -1,11 +1,20 @@
 import numpy as np
 import pandas as pd
+from pandas.core.frame import DataFrame
 import pandas_ta as ta
 from tqdm import tqdm
 import os 
 
+list_features = [
+    'adi', 'obv', 'ema', 'sma', 'wma', 'mfi', 'cmf', 'rsi', 'cci', 'roc', 'atr', 
+    'fibonacci', 'bollinger', 'wR', 'srsi', 'macd' 
+]
+default_dict = {
+    i: 14 for i in list_features
+}
+
 class FeatureTicker():
-    def __init__(self, tickerframe, name):
+    def __init__(self, tickerframe, name, hyperparams= {}):
         self.name = name
         tickerframe = tickerframe.sort_values(by=['TXDATE'], ascending=True)
         tkdate = tickerframe['TXDATE'] 
@@ -16,6 +25,9 @@ class FeatureTicker():
         self.low = self.tickerframe["low"]
         self.high = self.tickerframe["high"]
         self.volume = self.tickerframe["volume"]
+        self.hyperparams = default_dict
+        self.hyperparams.update(hyperparams)
+
         self.popular = pd.concat([self.countTA_popular(),tkdate], axis=1)
 
     def countTA_popular(self):
@@ -23,48 +35,60 @@ class FeatureTicker():
         try:
             TApopular['adi'] = ta.ad(close=self.close, high=self.high, \
                                     low=self.low, volume=self.volume)
+
             TApopular['obv'] = ta.obv(close=self.close, volume=self.volume)
-            TApopular['ema'] = ta.ema(close=self.close, length=14)
-            TApopular['sma'] = ta.sma(close=self.close, length=14)
-            TApopular['wma'] = ta.wma(close=self.close, length=14)
+
+            TApopular['ema'] = ta.ema(close=self.close, length=self.hyperparams['ema'])
+
+            TApopular['sma'] = ta.sma(close=self.close, length=self.hyperparams['sma'])
+            
+            TApopular['wma'] = ta.wma(close=self.close, length=self.hyperparams['wma'])
+            
             TApopular['mfi'] = ta.mfi(open=self.open, high=self.high,\
                                     low=self.low, close=self.close, \
-                                    volume=self.volume, length=14)
+                                    volume=self.volume, length=self.hyperparams['mfi'])
+            
             TApopular['cmf'] = ta.cmf(open=self.open, high=self.high,\
                                     low=self.low, close=self.close,\
-                                    volume=self.volume, length=14)
-            TApopular['rsi'] = ta.rsi(close=self.close, length=14)
+                                    volume=self.volume, length=self.hyperparams['cmf'])
+            
+            TApopular['rsi'] = ta.rsi(close=self.close, length=self.hyperparams['rsi'])
+            
             TApopular['cci'] = ta.cci(close=self.close, high=self.high, \
-                                    low=self.low, length=14)
-            TApopular['roc'] = ta.roc(close=self.close, length=14)
+                                    low=self.low, length=self.hyperparams['cci'])
+            
+            TApopular['roc'] = ta.roc(close=self.close, length=self.hyperparams['roc'])
+            
             TApopular['atr'] = ta.atr(close=self.close, high=self.high, \
-                                    low=self.low, length=14)
-            TApopular['fibonacci'] = ta.fwma(close=self.close, length=14)
+                                    low=self.low, length=self.hyperparams['atr'])
+            
+            TApopular['fibonacci'] = ta.fwma(close=self.close, length=self.hyperparams['fibonacci'])
 
-            bollinger = ta.bbands(close=self.close, length=14) 
-            TApopular['bollinger_bandsL'] = bollinger['BBL_14_2.0']
-            TApopular['bollinger_bandsM'] = bollinger['BBM_14_2.0']
-            TApopular['bollinger_bandsU'] = bollinger['BBU_14_2.0']
-            TApopular['bollinger_bandsB'] = bollinger['BBB_14_2.0']
-            TApopular['bollinger_bandsP'] = bollinger['BBP_14_2.0']
+            bollinger = ta.bbands(close=self.close, length=self.hyperparams['bollinger']) 
+            for boll_index in bollinger.keys():
+                TApopular[boll_index] = bollinger[boll_index] 
+            # TApopular['bollinger_bandsL'] = bollinger['BBL_'+ str(self.hyperparams['bollinger']) +'_2.0']
+            # TApopular['bollinger_bandsM'] = bollinger['BBM_'+ str(self.hyperparams['bollinger']) +'_2.0']
+            # TApopular['bollinger_bandsU'] = bollinger['BBU_'+ str(self.hyperparams['bollinger']) +'_2.0']
+            # TApopular['bollinger_bandsB'] = bollinger['BBB_'+ str(self.hyperparams['bollinger']) +'_2.0']
+            # TApopular['bollinger_bandsP'] = bollinger['BBP_'+ str(self.hyperparams['bollinger']) +'_2.0']
 
             TApopular['wR'] = ta.willr(close=self.close, high=self.high, \
-                                        low=self.low, length=14)
-            srsi = ta.stochrsi(close=self.close, high=self.high, \
-                                    low=self.low, length=14)
+                                        low=self.low, length=self.hyperparams['wR'])
             
-            TApopular['srsik'] = srsi['STOCHRSIk_14_14_3_3']
-            TApopular['srsid'] = srsi['STOCHRSId_14_14_3_3']
+            srsi = ta.stochrsi(close=self.close, high=self.high, \
+                                    low=self.low, length=self.hyperparams['srsi'])
+            for srsi_index in srsi.keys():
+                TApopular[srsi_index] = srsi[srsi_index] 
 
             so = ta.stoch(close=self.close, high=self.high, \
                                     low=self.low)                       
-            TApopular['sok'] = so['STOCHk_14_3_3']
-            TApopular['sod'] = so['STOCHd_14_3_3']
+            for so_index in so.keys():
+                TApopular[so_index] = so[so_index]
 
-            macd = ta.macd(close=self.close, length=14)
-            TApopular['macd'] = macd['MACD_12_26_9']
-            TApopular['macdh'] = macd['MACDh_12_26_9']
-            TApopular['macds'] = macd['MACDs_12_26_9']
+            macd = ta.macd(close=self.close, length=self.hyperparams['macd'])
+            for macd_index in macd.keys():
+                TApopular[macd_index] = macd[macd_index]
             
             psar = ta.psar(close=self.close, high=self.high, \
                                         low=self.low) 
@@ -80,17 +104,21 @@ class FeatureTicker():
             TApopular['ichimokuITS'] = ichimoku['ITS_9']
             TApopular['ichimokuIKS'] = ichimoku['IKS_26']
             TApopular['ichimokuICS'] = ichimoku['ICS_26']
+            
             TApopular['price'] = self.close.div(self.close.max()) if (self.close.max() != 0) else self.close
+
             TApopular['vol'] = self.volume.div(self.volume.max()) if (self.volume.max() != 0) else self.volume
 
             # TApopular['bw_mfi'] = 0
             # TApopular['vrsi'] = 0
-            # TApopular['mi'] =0 
+            # TApopular['mi'] = 0 
             TApopular = pd.concat([TApopular[key_index] for key_index in TApopular.keys()], axis=1)
-        except: 
+        except Exception as e: 
             print('Found exception at Ticker: ',self.name)
+            print(str(e))
             quit()
         return TApopular
+        
     def countFA_popular(self):
         return {}
     def count_popular(self):
@@ -129,10 +157,27 @@ class FeatureTicker():
     def to_dataframe(self, dict_data):
         return pd.DataFrame.from_dict(dict_data)
 
+class PreProcessor():
+    def __init__(self, max_params = 14, replace_nan = 'mean'):
+        self.max_params = max_params
+        self.replace_nan = replace_nan
+
+    def preprocess(self, data: pd.DataFrame):
+        data.drop(data.index[[i for i in range(-(self.max_params + 1),0)]], inplace= True)
+        # add more fill nan 
+        if self.replace_nan == 'mean':
+            value = data.mean()
+            data.fillna(value= value, inplace= True)
+        elif self.replace_nan == 'interpolate':
+            data.interpolate(method='linear', order=2, inplace=True)
+        data.fillna(value= 0, inplace= True)
+        return data
+
 if __name__ =='__main__':
     dataset = pd.DataFrame(pd.read_csv('./dataset/TradingHistory.csv'))
     dataset.drop(columns=['Unnamed: 0'], inplace=True)
     tickers = pd.DataFrame(pd.read_csv('./dataset/Ticker.csv')['TICKER'])
+    preprocessor = PreProcessor()
 
     for row in tqdm(tickers.iterrows(), desc= "Saving Ticker's Feature: ", total= len(tickers.index)):
     # Load ticker infor
@@ -144,28 +189,11 @@ if __name__ =='__main__':
         ticker_infor = FeatureTicker(ticker_infor, name = p_ticker)
         ticker_infor.popular.reset_index(inplace=True, drop=True)
         ticker_infor = ticker_infor.popular
-        # Deal with NaN values
-        # add more fill nan 
-        ticker_infor = ticker_infor.drop(ticker_infor.index[[i for i in range(-15,0)]])
-        mean = ticker_infor.mean()
-        ticker_infor.fillna(value=mean, inplace=True)
-        ticker_infor.fillna(value=0, inplace=True)
+
+        ticker_infor = preprocessor.preprocess(ticker_infor)
+
         ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
         # Save to csv
         filepath = './dataset/Features.csv'
         header = 1 - os.path.exists(filepath)
         ticker_infor.to_csv(filepath, mode='a', header=header, index=False)
-
-    # p_ticker = 'BIO'
-    # # p_ticker = row[1]['TICKER']
-    
-    # ticker_infor = dataset.loc[dataset['TICKER']==p_ticker]
-    # ticker_infor = FeatureTicker(ticker_infor, name = p_ticker)
-    # ticker_infor.popular.reset_index(inplace=True, drop=True)
-    # ticker_infor = ticker_infor.popular
-    # # Deal with NaN values
-    # ticker_infor = ticker_infor.drop(ticker_infor.index[[i for i in range(-15,0)]])
-    # mean = ticker_infor.mean()
-    # ticker_infor.fillna(value=mean, inplace=True)
-    # ticker_infor.fillna(value=0, inplace=True)
-    # ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]

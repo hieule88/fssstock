@@ -1,0 +1,28 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Activities
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.Data|as_crispy_field }}
+            </div>                
+        </div>
+        <input type="submit" name="para_submit" value="Query">
+        <br>
+    </form>
+        {% if message_list %}
+            <h3>Task activities</h3>
+            {% include "abnormaldetect/tasklog_basic.html" %}
+            <script>
+                $('#sortTable').DataTable();
+            </script>  
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}      
+    {% endif %}  
+{% endblock %}

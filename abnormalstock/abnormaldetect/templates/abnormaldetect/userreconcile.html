@@ -1,0 +1,57 @@
+{% extends "abnormaldetect/base.html" %}
+{% block title %}
+    Reconcile result
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <h4>Top 1000 biggest GAP_VALUE</h4>
+        <a href="javascript:export_data()">Export table data</a>
+        <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+                <th class="header" scope="col">RULENAME</th>
+                <th class="header" scope="col">TAXCODE</th>
+                <th class="header" scope="col">YEAR</th>
+                <th class="header" scope="col">LEFT_VALUE</th>
+                <th class="header" scope="col">RIGHT_VALUE</th>
+                <th class="header" scope="col">GAP_VALUE</th>
+                <th class="header" scope="col">LOCATION</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in message_list %}
+                <tr>
+                    <td>{{ message.1 }}</td>
+                    <td><a href="{% url 'userriskprofile' message.2 %}">{{ message.2 }}</a></td>
+                    <td>{{ message.3 }}</td>
+                    <td class="text-right">{{ message.4 | floatformat:0 }}</td>
+                    <td class="text-right">{{ message.5 | floatformat:0 }}</td>
+                    <td class="text-right">{{ message.6 | floatformat:0 }}</td>
+                    <td>{{ message.7 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <a href="javascript:export_data()">Export table data</a>
+        <script>
+            $('#sortTable').DataTable();
+        </script>  
+    {% endif %}  
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function export_data() {
+        $("#sortTable").table2excel({
+            filename: "tab2exl",
+            name: "QuerySet",
+            fileext: ".xls",
+            exclude_img: true,
+            exclude_links: true,
+            exclude: ".dntinclude",
+            exclude_inputs: true
+        });  
+    }
+</script>
+{% endblock javascript %}

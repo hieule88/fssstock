@@ -1,0 +1,44 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    ETL
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <form action = "" method = "POST">
+            <!--{% csrf_token %} -->
+            <div class="form-row">
+                <div class="form-group col-md-6 mb-0">
+                    {{ form.Category|as_crispy_field }}
+                </div>                
+                <div class="form-group col-md-2 mb-0">
+                    {{ form.Year|as_crispy_field }}
+                </div>                
+            </div>
+            <input type="submit" name="para_submit" value="Submit">
+            <br>
+        </form>
+        {% if message_list %}
+            <table class="table" cellspacing="0" width="100%">
+                <thead style="position: sticky;top: 0" class="thead-dark">
+                <tr>
+                <th class="header" scope="col">LOAICT</th>
+                <th class="header" scope="col">MACT</th>                      
+                <th class="header" scope="col">CNT</th>
+                <th class="header" scope="col">CMD</th>
+            </tr>
+                </thead>
+                <tbody>
+                {% for message in message_list %}
+                    <tr>
+                    <td>{{ message.0 }}</td>
+                    <td>{{ message.1 }}</td>
+                    <td>{{ message.2 }}</td>
+                    <td>{{ message.3 }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}    
+    {% endif %}  
+{% endblock %}

@@ -1,0 +1,50 @@
+<h3>Model prediction result</h3>
+<table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+    <thead style="position: sticky;top: 0" class="thead-dark">
+    <tr>
+        <th class="header" scope="col">MODELID</th>
+        <th class="header" scope="col">MST</th>
+        <th class="header" scope="col">SCORE</th>
+        <th class="header" scope="col">DTTHUAN</th>
+        <th class="header" scope="col">CHITIEU</th>
+        <th class="header" scope="col" style="width:5%"></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for message in message_list %}
+        <tr>
+            <td>{{ message.1 }}</td>
+            <td><a href="{% url 'frauditem' message.8 %}" title="{{ message.3 }}">{{ message.2 }}</a></td>
+            <td>{{ message.6 | floatformat:0 }}</td>
+            <td class="text-right">{{ message.10 | floatformat:0 }}</td>
+            <td>{{ message.7 }}</td>
+            <td>
+                <a href="#rowdetail{{ forloop.counter }}" data-toggle="collapse">+</a>
+                <tr id="rowdetail{{ forloop.counter }}" class="collapse">
+                    <td colspan="5" >
+                        <table class="message_list">
+                            <thead>
+                                <tr>
+                                    <th>METHOD</th>
+                                    <th>VARIABLE</th>
+                                    <th>ACTUAL</th>
+                                    <th>PREDICT</th>
+                                </tr>
+                            </thead>   
+                            <tbody>
+                                <tr class="table-light">
+                                    <td>{{ message.9 }}</td>
+                                    <td>{{ message.11 }}</td>
+                                    <td class="text-right">{{ message.12 | floatformat:2 }}</td>
+                                    <td class="text-right">{{ message.13 | floatformat:2 }}</td>
+                                </tr>
+                        </tbody>                                                 
+                        </table>
+                    </td>
+                  </tr>                                                                              
+             </td>             
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+

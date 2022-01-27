@@ -1,0 +1,82 @@
+{% extends "abnormaldetect/base.html" %}
+{% block title %}
+    Dashboard
+{% endblock %}
+{% block content %}
+{% if user.is_authenticated %}
+    <div class="bs-example">
+        <ul id="myTab" class="nav nav-tabs">
+            <li class="nav-item">
+                <a href="#main" class="nav-link active" data-toggle="tab">Main</a>
+            </li>
+            <li class="nav-item">
+                <a href="#drilldown" class="nav-link" data-toggle="tab">Drilldown</a>
+            </li>
+            <li class="nav-item">
+                <a href="#pie" class="nav-link" data-toggle="tab">Pie</a>
+            </li>
+            <li class="nav-item">
+                <a href="#comparison" class="nav-link" data-toggle="tab">Comparison</a>
+            </li>
+            <li class="nav-item">
+                <a href="#bubble" class="nav-link" data-toggle="tab">Bubble</a>
+            </li>
+            <li class="nav-item">
+                <a href="#heatmap" class="nav-link" data-toggle="tab">Heatmap</a>
+            </li>
+            <!-- <li class="nav-item">
+                <a href="#sunburst" class="nav-link" data-toggle="tab">Sunburst</a>
+            </li>
+            <li class="nav-item">
+                <a href="#scatter" class="nav-link" data-toggle="tab">Scatter</a>
+            </li>
+            <li class="nav-item">
+                <a href="#riskprofile" class="nav-link" data-toggle="tab">Riskprofile</a>
+            </li> -->
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="main">
+                {% include "abnormaldetect/dashboard_main.html" %}
+            </div>
+            <div class="tab-pane fade" id="pie">
+                {% include "abnormaldetect/dashboard_pie.html" %}
+            </div>
+            <div class="tab-pane fade" id="comparison">
+                {% include "abnormaldetect/dashboard_comparison.html" %}
+            </div>
+            <div class="tab-pane fade" id="drilldown">
+                {% include "abnormaldetect/dashboard_drilldown.html" %}
+            </div>
+            <div class="tab-pane fade" id="bubble">
+                {% include "abnormaldetect/dashboard_bubble.html" %}
+            </div>
+            <div class="tab-pane fade" id="heatmap">
+                {% include "abnormaldetect/dashboard_heatmap.html" %}
+            </div>
+            <div class="tab-pane fade" id="sunburst">
+                {% include "abnormaldetect/dashboard_sunburst.html" %}
+            </div>
+            <div class="tab-pane fade" id="scatter">
+                {% include "abnormaldetect/dashboard_scatter.html" %}
+            </div>
+            <div class="tab-pane fade" id="riskprofile">
+                {% include "abnormaldetect/dashboard_riskprofile.html" %}
+            </div>
+        </div>
+        <hr>
+        <p class="text-info"><em>Click on any other tab to see how it works.</em></p>
+        <p class="active-tab"><strong>Active Tab</strong>: <span></span></p>
+        <p class="previous-tab"><strong>Previous Tab</strong>: <span></span></p>
+    </div>
+{% endif %}  
+<script>
+    $(document).ready(function(){
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+            var activeTab = $(e.target).text(); // Get the name of active tab
+            var previousTab = $(e.relatedTarget).text(); // Get the name of previous tab
+            $(".active-tab span").html(activeTab);
+            $(".previous-tab span").html(previousTab);
+        });
+    });
+</script>  
+{% endblock %}

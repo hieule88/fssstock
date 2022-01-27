@@ -1,0 +1,67 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Labelling
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.Data|as_crispy_field }}
+            </div>                
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.BOOTSTRAP|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.EPS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.INIT|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MAX_ITER|as_crispy_field }}
+            </div>                
+        </div>        
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MAX_SAMPLE|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.METRIC|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MIN_SAMPLES|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.NAME_METHOD|as_crispy_field }}
+            </div>                
+        </div>        
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_CLUSTERS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_ESTIMATORS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.N_NEIGHBORS|as_crispy_field }}
+            </div>                
+            <div class="form-group col-md-2 mb-0">
+                {{ form.RADIUSTHRESHOLD|as_crispy_field }}
+            </div>                
+        </div>         
+        <input type="submit" name="para_submit" value="Submit">
+        <br>
+        {% if message_list %}
+            <h3>Task log: Labelling</h3>
+            {% include "abnormaldetect/tasklog_basic.html" %}
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}            
+        </form>
+    {% endif %}  
+{% endblock %}

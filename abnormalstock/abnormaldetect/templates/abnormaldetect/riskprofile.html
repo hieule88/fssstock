@@ -1,0 +1,67 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Risk profile
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+        <div class="bs-example">
+            <ul id="myTab" class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="#kri" class="nav-link active" data-toggle="tab">KRI</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#item" class="nav-link" data-toggle="tab">ITEM</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#rating" class="nav-link" data-toggle="tab">RATING</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#statistic" class="nav-link" data-toggle="tab">STATISTIC</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#ttr" class="nav-link" data-toggle="tab">TTR</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#profile" class="nav-link" data-toggle="tab">PROFILE</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="kri">
+                    {% include "abnormaldetect/riskprofile_kri.html" %}
+                </div>
+                <div class="tab-pane fade" id="item">
+                    {% include "abnormaldetect/riskprofile_item.html" %}
+                </div>
+                <div class="tab-pane fade" id="rating">
+                    {% include "abnormaldetect/riskprofile_rating.html" %}
+                </div>
+                <div class="tab-pane fade" id="statistic">
+                    {% include "abnormaldetect/riskprofile_statistic.html" %}
+                </div>
+                <div class="tab-pane fade" id="ttr">
+                    {% include "abnormaldetect/riskprofile_ttr.html" %}
+                </div>
+                <div class="tab-pane fade" id="profile">
+                    {% include "abnormaldetect/riskprofile_profile.html" %}
+                </div>
+            </div>
+
+            <hr>
+            <p class="text-info"><em>{{ linkid }}: Click on any other tab to see more information.</em></p>
+            <p class="active-tab"><strong>Active Tab</strong>: <span></span></p>
+            <p class="previous-tab"><strong>Previous Tab</strong>: <span></span></p>
+        </div>        
+    {% endif %}  
+
+    <script>
+        $(document).ready(function(){
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){
+                var activeTab = $(e.target).text(); // Get the name of active tab
+                var previousTab = $(e.relatedTarget).text(); // Get the name of previous tab
+                $(".active-tab span").html(activeTab);
+                $(".previous-tab span").html(previousTab);
+            });
+        });
+    </script>    
+{% endblock %}

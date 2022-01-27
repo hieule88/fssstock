@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>{% block title %}{% endblock %}</title>
+    {% load static %}
+    {{ static }}
+        <link rel="stylesheet" href="{% static 'abnormaldetect/bootstrap.min.css' %}"/>
+        <link rel="stylesheet" href="{% static 'abnormaldetect/dataTables.bootstrap4.min.css' %}"/>
+        <link rel="stylesheet" href="{% static 'abnormaldetect/font-awesome.min.css' %}"/>
+
+        <script src="{% static 'abnormaldetect/jquery-3.3.1.slim.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/popper.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/bootstrap.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/jquery.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/dataTables.bootstrap4.min.js' %}"></script>
+
+        <script src="{% static 'abnormaldetect/bootstrap-table-export.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/bootstrap-table.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/tableExport.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/jspdf.min.js' %}"></script>
+        <script src="{% static 'abnormaldetect/jspdf.plugin.autotable.js' %}"></script>
+
+        <script src="{% static 'abnormaldetect/jquery.table2excel.js' %}"></script>
+        
+        <script src="{% static 'abnormaldetect/highcharts.js' %}"></script>
+        <script src="{% static 'abnormaldetect/highcharts-more.js' %}"></script>
+        <script src="{% static 'abnormaldetect/data.js' %}"></script>
+        <script src="{% static 'abnormaldetect/drilldown.js' %}"></script>
+        <script src="{% static 'abnormaldetect/sunburst.js' %}"></script>
+        <script src="{% static 'abnormaldetect/heatmap.js' %}"></script>
+        <script src="{% static 'abnormaldetect/treemap.js' %}"></script>
+        <script src="{% static 'abnormaldetect/histogram-bellcurve.js' %}"></script>
+        <script src="{% static 'abnormaldetect/exporting.js' %}"></script>
+        <script src="{% static 'abnormaldetect/export-data.js' %}"></script>
+        <script src="{% static 'abnormaldetect/accessibility.js' %}"></script>
+
+        <link href="{% static 'abnormaldetect/favicon.ico' %}" rel="shortcut icon">
+        <style>
+            .header {
+                position: sticky;
+                top:0;
+            }
+             body {
+                 height: 800px;
+             }
+             .bs-example{
+    	        margin: 20px;
+            }             
+        </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'abnormaldetect/site.css' %}"/>
+</head>
+
+<body>
+<div class="navbar">
+    <a href="{% url 'userindex' %}" class="navbar-item">Home</a>
+    <!-- <a href="{% url 'userdatacheck' %}" class="navbar-item">Data Check</a> -->
+    <a href="{% url 'userindex' %}" class="navbar-item">Dataset</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Preprocessing</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Labelling</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Modelling</a>
+    <a href="{% url 'userprediction' %}"  class="navbar-item">Prediction</a>
+    <!-- <a href="{% url 'userinquiry' %}"  class="navbar-item">Inquiry</a> -->
+    <a href="{% url 'userindex' %}" class="navbar-item">Autorun</a>
+    <!-- <a href="{% url 'userkriset' %}" class="navbar-item">KRIS</a> -->
+    <!-- <a href="{% url 'dashboard' %}" class="navbar-item">Dashboard</a> -->
+    <a href="{% url 'home' %}" class="navbar-item">Admin mode</a>            
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="navbar-item">Log Out</a>
+    {% else %}
+        <a href="{% url 'signin' %}"  class="navbar-item">Sign In</a>
+    {% endif %}
+</div>
+<div class="text-right mx-auto"> 
+    <i>Unit in 1000 VND</i>
+</div>
+<div class="body-content">
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% block content %}
+        {% endblock %}
+
+        {% block javascript %}
+        {% endblock javascript %}    
+    {% endif %}
+
+    <hr/>
+    <footer>
+        <p>
+            {% if user.is_authenticated %}
+                Developed by FSS 2021 Welcome {{ user.username }}!
+            {% else %}
+                Developed by FSS 2021 You are not logged in
+            {% endif %}
+        </p> 
+    </footer>
+</div>
+</body>
+</html>

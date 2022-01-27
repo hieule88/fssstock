@@ -1,0 +1,44 @@
+<div class="container-fluid" width="100%">
+    <!-- Highcharts display -->
+    <div id="container_pie"></div>
+</div>
+ 
+<script>
+    _pie_series = {{pie_series|safe}};
+    _pie_subseries = {{pie_subseries|safe}};
+    _active_year = {{active_year|safe}};
+
+    Highcharts.chart('container_pie', {
+        chart: {type: 'pie'},
+        title: {text: 'Cơ cấu thuế TNDN năm ' + (_active_year)},
+        subtitle: {text: '(đơn vị tỷ VND)'},
+        accessibility: {
+            announceNewData: {
+            enabled: true
+            },
+            point: {
+            valueSuffix: '%'
+            }
+        },
+        plotOptions: {
+            series: {
+            dataLabels: {
+                enabled: true,
+                format: '{point.name}: {point.y:.1f}'
+            }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}</b><br/>'
+        },
+
+        series: [{name: 'Ngành kinh tế',
+                    colorByPoint: true,
+                    data: _pie_series
+                }],
+        drilldown: {
+            series: _pie_subseries
+        }
+    });
+</script>

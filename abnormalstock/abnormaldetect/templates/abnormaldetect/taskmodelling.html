@@ -1,0 +1,25 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Modelling
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-9 mb-0">
+                {{ form.Data|as_crispy_field }}
+            </div>                
+        </div>
+         <input type="submit" name="para_submit" value="Submit">
+        <br>
+        {% if message_list %}
+            <h3>Task log: Modelling</h3>
+            {% include "abnormaldetect/tasklog_basic.html" %}
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}            
+        </form>
+    {% endif %}  
+{% endblock %}
