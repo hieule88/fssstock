@@ -14,7 +14,7 @@ https://drive.google.com/drive/folders/1uAiCKAaxvi0QKL9RjuSOAiAuzqZzqhJQ?usp=sha
 * cd fssstock
 * pip install -r requirements.txt
 # Some changes for the path to TradingHistory.csv:
-* In the file abnormalstock/abnormaldetect/source/main.py , line 60 , change the path to the TradingHistory.csv's path
+* In the file abnormalstock/abnormaldetect/source/main.py , line 60 , change the path to the TradingHistory.csv's path on your computer
 # Now Run
 * cd abnormalstock
 * python manage.py runserver
