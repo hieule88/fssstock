@@ -69,7 +69,7 @@ def RUNVARMODEL(ref, hyperparams):
     tickers = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', input_ticker, input_start_date, input_end_date).dataframe
 
     var_model = VarModel(maxlag, difftest, stationtest, featureimportance,\
-                    topfeature, fithresh, scoreconvert, scorethresh)
+                        topfeature, fithresh, scoreconvert, scorethresh)
     
     preprocessor = PreProcessor(max_params=max_params, replace_nan=replacenan)
 

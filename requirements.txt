@@ -4,3 +4,5 @@ tqdm
 pandas_ta
 statsmodels
 matplotlib
+tqdm
+finta
