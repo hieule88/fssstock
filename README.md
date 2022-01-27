@@ -1,4 +1,4 @@
-# Require:
+# Requirements:
 * Setup cx_Oracle for python like Tax Fraud Detection app  
 * Download all stocks dataset from 01/01/2019 to 01/01/2021 via ggdrive link below to reduce loading data time from DB: 
 https://drive.google.com/drive/folders/1uAiCKAaxvi0QKL9RjuSOAiAuzqZzqhJQ?usp=sharing
