@@ -134,9 +134,12 @@ class VarModel():
                 data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:] ], axis=1)
                 data['Predictions'] = predictions.values
 
+                # print('\nLIST ABNORMAL DAYS OF TICKER:', p_ticker)
+                # print(data[['TXDATE', 'Score']].loc[data['Predictions'] ==1])
+
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
-                output= data[['TXDATE', 'Score']].loc[data['Predictions'] ==1], top
+                return data[['TXDATE', 'Score']].loc[data['Predictions'] ==1], top
             except Exception as e:
                 e = str(e)
                 e_index = 0
@@ -150,8 +153,6 @@ class VarModel():
                     break
                 e_column = int(e[:e_index])
                 column_to_model.remove(column_to_model[e_column-1])
-        
-        return output
 
     def feature_importance(self, ticker_feature, column_to_model, selected_lag):
         if self.featureimportance == 'corr' :

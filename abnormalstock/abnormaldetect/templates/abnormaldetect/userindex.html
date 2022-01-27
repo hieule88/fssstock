@@ -7,7 +7,7 @@
 {% if user.is_authenticated %}
     <form action = "" method = "POST">
         <!--{% csrf_token %} -->
-        Taxcode: {{ form.TaxCode }} <input type="submit" name="para_submit" value="Submit">
+        MaCK: {{ form.TaxCode }} <input type="submit" name="para_submit" value="Submit">
     </form>
     {% if message_list %}
         <table cellspacing="0" width="100%">

@@ -7,11 +7,26 @@
     {% if user.is_authenticated %}
     <form action = "" method = "POST">
         <!--{% csrf_token %} -->
+        <h1> DATASET </h1>
+        <br>
         <div class="form-row">
             <div class="form-group col-md-2 mb-0">
                 {{ form.DataVersion|as_crispy_field }}
             </div>     
-            
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MaCK|as_crispy_field }}
+            </div>     
+            <div class="form-group col-md-2 mb-0">
+                {{ form.FromDate|as_crispy_field }}
+            </div>     
+            <div class="form-group col-md-2 mb-0">
+                {{ form.ToDate|as_crispy_field }}
+            </div>     
+            <br>
+        </div>
+            <h1> PREPROCESS </h1>
+            <br>
+        <div class="form-row">
             <div class="form-group col-md-2 mb-0">
                 {{ form.Method|as_crispy_field }}
             </div> 
@@ -26,7 +41,12 @@
             </div>                
             <div class="form-group col-md-2 mb-0">
                 {{ form.MinTradeDay|as_crispy_field }}
-            </div>                               
+            </div>   
+        </div>                            
+            <br>
+            <h1> MODEL </h1>
+            <br>
+        <div class="form-row">
             <div class="form-group col-md-2 mb-0">
                 {{ form.MaxLag|as_crispy_field }}
             </div>                

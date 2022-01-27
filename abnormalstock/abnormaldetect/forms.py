@@ -28,20 +28,24 @@ class UserPredictionForm(forms.Form):
                     for i, type in enumerate(set_dataversion)]          
         self.fields['DataVersion'] = forms.ChoiceField(
             choices=ref_dataversion )      
-    StationarityTest = forms.ChoiceField(label = "STATIONARITYTEST", choices  = admin.PARAMS['STATIONARITYTEST'])
-    DiffTest = forms.ChoiceField(label = "DIFFTYPE", choices  = admin.PARAMS['DIFFTYPE'])
-    ReplaceNan = forms.ChoiceField(label = "REPLACENAN", choices  = admin.PARAMS['REPLACENAN'])
-    MinTradeDay = forms.ChoiceField(label = "MINTRADEDAY", choices  = admin.PARAMS['MINTRADEDAY'])
+    MaCK = forms.ChoiceField(label = "MACK", choices  = admin.PARAMS['MACK'], required= True, initial='ALL')
+    FromDate = forms.CharField(label = "FROMDATE", required= True)
+    ToDate = forms.CharField(label = "TODATE", required= True)
 
-    Method = forms.ChoiceField(label = "METHOD", choices  = admin.PARAMS['METHOD'])
-    MaxLag = forms.ChoiceField(label = "MAXLAG", choices  = admin.PARAMS['MAXLAG'])
-    FeatureImpotance = forms.ChoiceField(label = "FEATUREIMPORTANCE", choices  = admin.PARAMS['FEATUREIMPORTANCE'])
+    StationarityTest = forms.ChoiceField(label = "STATIONARITYTEST", choices  = admin.PARAMS['STATIONARITYTEST'], required= True)
+    DiffTest = forms.ChoiceField(label = "DIFFTYPE", choices  = admin.PARAMS['DIFFTYPE'], required= True)
+    ReplaceNan = forms.ChoiceField(label = "REPLACENAN", choices  = admin.PARAMS['REPLACENAN'], required= True)
+    MinTradeDay = forms.IntegerField(label = "MINTRADEDAY", required= True, initial=60)
 
-    FIThreshold = forms.ChoiceField(label = "FITHRESHOLD", choices  = admin.PARAMS['FITHRESHOLD'])
-    TopFeature = forms.ChoiceField(label = "TOPFEATURE", choices  = admin.PARAMS['TOPFEATURE'])
-    ScoreConvert = forms.ChoiceField(label = "SCORECONVERT", choices  = admin.PARAMS['SCORECONVERT'])
-    ScoreThreshold = forms.ChoiceField(label = "SCORETHRESHOLD", choices  = admin.PARAMS['SCORETHRESHOLD'])
-    AbnormThreshold = forms.ChoiceField(label = "ABNORMTHRESHOLD", choices  = admin.PARAMS['ABNORMTHRESHOLD'])
+    Method = forms.ChoiceField(label = "METHOD", choices  = admin.PARAMS['METHOD'], required= True)
+    MaxLag = forms.IntegerField(label = "MAXLAG", required= True, initial=5)
+    FeatureImpotance = forms.ChoiceField(label = "FEATUREIMPORTANCE", choices  = admin.PARAMS['FEATUREIMPORTANCE'], required= True)
+
+    FIThreshold = forms.ChoiceField(label = "FITHRESHOLD", choices  = admin.PARAMS['FITHRESHOLD'], required= True)
+    TopFeature = forms.IntegerField(label = "TOPFEATURE", required= True, initial=15)
+    ScoreConvert = forms.ChoiceField(label = "SCORECONVERT", choices  = admin.PARAMS['SCORECONVERT'], required= True)
+    ScoreThreshold = forms.ChoiceField(label = "SCORETHRESHOLD", choices  = admin.PARAMS['SCORETHRESHOLD'], required= True)
+    AbnormThreshold = forms.IntegerField(label = "ABNORMTHRESHOLD", required= True, initial=14)
 
     MaxRows = forms.IntegerField(label = "Max rows", required = False, initial=1000)
     

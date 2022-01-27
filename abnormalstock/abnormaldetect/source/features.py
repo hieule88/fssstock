@@ -166,7 +166,7 @@ class PreProcessor():
             value = data.mean()
             data.fillna(value= value, inplace= True)
         elif self.replace_nan == 'interpolate':
-            data.interpolate(method='linear', order=2, inplace=True)
+            data.interpolate(method='ffill', order=2, inplace=True)
         data.fillna(value= 0, inplace= True)
         return data
 

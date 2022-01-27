@@ -55,11 +55,16 @@
 <body>
 <div class="navbar">
     <a href="{% url 'userindex' %}" class="navbar-item">Home</a>
-    <a href="{% url 'userdatacheck' %}" class="navbar-item">Data checking</a>
+    <!-- <a href="{% url 'userdatacheck' %}" class="navbar-item">Data Check</a> -->
+    <a href="{% url 'userindex' %}" class="navbar-item">Dataset</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Preprocessing</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Labelling</a>
+    <a href="{% url 'userindex' %}" class="navbar-item">Modelling</a>
     <a href="{% url 'userprediction' %}"  class="navbar-item">Prediction</a>
-    <a href="{% url 'userinquiry' %}"  class="navbar-item">Inquiry</a>
-    <a href="{% url 'userkriset' %}" class="navbar-item">KRIs</a>
-    <a href="{% url 'dashboard' %}" class="navbar-item">Dashboard</a>
+    <!-- <a href="{% url 'userinquiry' %}"  class="navbar-item">Inquiry</a> -->
+    <a href="{% url 'userindex' %}" class="navbar-item">Autorun</a>
+    <!-- <a href="{% url 'userkriset' %}" class="navbar-item">KRIS</a> -->
+    <!-- <a href="{% url 'dashboard' %}" class="navbar-item">Dashboard</a> -->
     <a href="{% url 'home' %}" class="navbar-item">Admin mode</a>            
     {% if user.is_authenticated %}
         <a href="{% url 'logout' %}" class="navbar-item">Log Out</a>

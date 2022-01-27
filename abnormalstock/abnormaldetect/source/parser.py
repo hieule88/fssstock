@@ -1,15 +1,17 @@
 import cx_Oracle
 import pandas as pd
-from backend import BACKEND_DB
+# from backend import BACKEND_DB
+from abnormaldetect.source.backend import BACKEND_DB
 
 class Parser:
-    def __init__(self, database, table, p_ticker, p_start_date, p_end_date):
+    def __init__(self, proc, table, p_ticker, p_start_date, p_end_date):
         self.table = table
         try:
+            print('LOADING DATA FROM DATABASE')
             con = cx_Oracle.connect(BACKEND_DB)
             cursor = con.cursor()
             outcursor = cursor.var(cx_Oracle.CURSOR)
-            cursor.callproc(database, [table, p_ticker, p_start_date, p_end_date, outcursor])
+            cursor.callproc(proc, [table, p_ticker, p_start_date, p_end_date, outcursor])
             refCursor = outcursor.getvalue()
             col_names = []
             for col in refCursor.description:
@@ -18,7 +20,7 @@ class Parser:
             dfticker.columns=col_names
 
             if table in ['TVHISTORY1D', 'TVHISTORY1M']: 
-                dfticker.rename(columns={"O": "open", "H": "high", "L": "low", "C": "close", "V": "volume"})
+                dfticker.rename(columns={"O": "open", "H": "high", "L": "low", "C": "close", "V": "volume"}, inplace= True)
             self.dataframe = dfticker
             print('SUCCESSFUL LOAD FROM DATABASE')
 
@@ -38,3 +40,10 @@ class Parser:
             return pd.DataFrame(self.dataframe['TICKER'].unique())
         
         return self.dataframe
+
+if __name__ == '__main__':
+    p_start_date='01/01/2019'
+    p_end_date='01/01/2021'
+    p_ticker = 'FPT'
+    parser = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', p_ticker, p_start_date, p_end_date)
+    print(parser.dataframe)
