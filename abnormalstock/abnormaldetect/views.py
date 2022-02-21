@@ -303,7 +303,7 @@ def userpredictversion(request, reflinkid=''):
         context = {
             "message_list": queryset,
             "linkid": reflinkid
-        }    
+        }
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
@@ -730,14 +730,14 @@ def taskdata(request):
             if form.is_valid():
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
-                    cmdbackend.task_data_submit(cd['Category'], cd['Industry'], cd['Area'], cd['Age'], cd['Capital'], cd['Year'], cd['KRISet'], cd['KRILoss'])
+                    cmdbackend.task_data_submit(cd['DatasetType'], cd['MaCK'], cd['FromDate'], cd['ToDate'])
         else:
-            form = ChooseDataForm()   
+            form = ChooseDataForm()
         queryset =  cmdbackend.task_para_get('TASKDATA')
         context = {
             "message_list": queryset,
             "form": form
-        }    
+        }
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
@@ -807,25 +807,21 @@ def taskpreprocessing(request):
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
-                    para_content = 'BALANCEDATAMETHOD/CATEGORICALIMPUTER/CATEGORICALOUTLIERS/CHOOSEONEHOTENCODER/COMBINECATEGORICAL/NUMERICIMPUTER/NUMERICOUTLIERS/N_COMPONENTS/N_FOLDS/PARAMETERFORBALANCEDATA/PCALABELLING/RATEHOLDCOL/RATEHOLDROW/SCALER/SVD_SOLVER/TEST_SIZE/WHIS_BOXPLOT: ['
-                    para_content = para_content + cd['BALANCEDATAMETHOD'] + '/'
-                    para_content = para_content + cd['CATEGORICALIMPUTER'] + '/'
-                    para_content = para_content + cd['CATEGORICALOUTLIERS'] + '/'
-                    para_content = para_content + cd['CHOOSEONEHOTENCODER'] + '/'
-                    para_content = para_content + cd['COMBINECATEGORICAL'] + '/'
-                    para_content = para_content + cd['NUMERICIMPUTER'] + '/'
-                    para_content = para_content + cd['NUMERICOUTLIERS'] + '/'
-                    para_content = para_content + cd['N_COMPONENTS'] + '/'
-                    para_content = para_content + cd['N_FOLDS'] + '/'
-                    para_content = para_content + cd['PARAMETERFORBALANCEDATA'] + '/'
-                    para_content = para_content + cd['PCALABELLING'] + '/'
-                    para_content = para_content + cd['RATEHOLDCOL'] + '/'
-                    para_content = para_content + cd['RATEHOLDROW'] + '/'
-                    para_content = para_content + cd['SCALER'] + '/'
-                    para_content = para_content + cd['SVD_SOLVER'] + '/'
-                    para_content = para_content + cd['TEST_SIZE'] + '/'
-                    para_content = para_content + cd['WHIS_BOXPLOT'] + ']'
-                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
+                    para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE: ['
+                    para_content = para_content + cd['STATIONARITYTEST'] + '/'
+                    para_content = para_content + cd['DIFFTYPE'] + '/'
+                    para_content = para_content + cd['REPLACENAN'] + '/'
+                    para_content = para_content + cd['MINTRADEDAY'] + '/'
+                    para_content = para_content + cd['METHOD'] + '/'
+                    para_content = para_content + cd['MAXLAG'] + '/'
+                    para_content = para_content + cd['FEATUREIMPORTANCE'] + ']'
+                    cur, conn = connect_data()
+                    sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, TASKEND, STATUS, SCHEDULECD, PARACONTENT, LOGCONTENT) VALUES \
+                                            ('{}', {}, {}, '{}', '{}', {}, {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                            .format('INITDATASOURCE', 'null', 'null', reftaskid, reftaskid, reftaskid, reftaskid, 'null', 'null', 'null', para_content, 'null')
+                    cur.execute(sql_insert)
+                    conn.commit()
+
         else:
             form = PreprocessingForm()   
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)

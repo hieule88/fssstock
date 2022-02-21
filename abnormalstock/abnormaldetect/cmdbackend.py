@@ -7,6 +7,8 @@ import pickle
 import base64
 import matplotlib.pyplot as plt
 from abnormaldetect.source.main import RUNVARMODEL
+from abnormaldetect.source.upload_to_db import connect_data
+from datetime import datetime
 
 #User checking data
 def func_modelid_variable(v_modelid):    
@@ -462,17 +464,20 @@ def task_para_setup(paraname, paraval, yesnotag, actiontag):
         raise        
 
 #Submit Data for the Task
-def task_data_submit(p_bobctc, p_industry, p_area, p_age, p_capital, p_year, p_kriset, p_kriloss):
+def task_data_submit(p_datatype, p_mack, p_fromdate, p_todate):
     try:
-        con = cx_Oracle.connect(settings.BACKEND_DB)
-        cursor = con.cursor()
+        strt_time = time.ctime()
+        ref = datetime.now().strftime("%D:%H:%M:%S")
+        p_paracontent = 'DATAVERSION-MACK-FROMDATE-TODATE:{}-{}-{}-{}'.format(p_datatype, p_mack, p_fromdate, p_todate)
+        cursor, con = connect_data()
+
         ret_count = cursor.var(int)
-        p_frdate = '01/01/2015'
-        p_todate = '31/12/' + p_year
-        p_cmdtype = 'P'
-        p_cmdsql = ''
-        cursor.callproc('SP_ENGINE_CHOOSE_DATASOURCE', [p_frdate, p_todate, p_bobctc, p_age, p_capital, p_industry, p_area, p_kriset, p_kriloss, p_cmdtype, p_cmdsql, ret_count])
+        sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, TASKEND, STATUS, SCHEDULECD, PARACONTENT, LOGCONTENT, CRONJOBID) \
+                        VALUES ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')"\
+                        .format('TASKDATA', 0, 0, ref, ref, strt_time, strt_time, 'null', 'null', 'null', p_paracontent, 'null', 'null')
+        cursor.execute(sql_insert)
         con.commit()
+
         return ret_count
     except:
         # Re-raise the exception.
@@ -519,14 +524,28 @@ def task_result_feedback(p_taskid, p_status, p_logontent):
         raise        
 
 #Get dataset
-def task_para_get(v_para_typ):    
+def task_para_get(v_para_typ):
     try:
+        # need_debug to get table of datasets
+        ###################################
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('GET_DATASET_GENERIC', [v_para_typ, outcursor])
-        results = outcursor.getvalue()
+        sql_query = "SELECT VERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_para_typ)
+        cursor.execute(sql_query)
+        
+        results = cursor.fetchall()
+        for res_ind in range(len(results)) :
+            ref, cont = results[res_ind]
+            cont = cont.split(':')[1].split('-')
+            cont.append(ref)
+            cont.append(res_ind+1)
+            results[res_ind] = cont
+        # parent_content = cursor.fetchall()[0][0]
+        # data = parent_content.split(':')
+        # data = data[1].split('/')
+
         return results
+        ###################################
     except:
         # Re-raise the exception.
         raise        
@@ -562,9 +581,9 @@ def task_log_activity(v_taskcd, v_refversion, v_reftaskid):
     try:
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('GET_TASK_INFO', [v_taskcd, v_refversion, v_reftaskid, outcursor])
-        results = outcursor.getvalue()
+        sql_query = "SELECT VERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_taskcd)
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
         return results    
     except:
         # Re-raise the exception.

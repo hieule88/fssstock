@@ -7,35 +7,22 @@
     {% if user.is_authenticated %}
         <form action = "" method = "POST">
             <!--{% csrf_token %} -->
+            <h1> DATASET </h1>
+            <br>
             <div class="form-row">
                 <div class="form-group col-md-2 mb-0">
-                    {{ form.Age|as_crispy_field }}
-                </div>                
-                <div class="form-group col-md-3 mb-0">
-                    {{ form.Capital|as_crispy_field }}
-                </div>                
+                    {{ form.DatasetType|as_crispy_field }}
+                </div>     
                 <div class="form-group col-md-2 mb-0">
-                    {{ form.Year|as_crispy_field }}
-                </div>                
+                    {{ form.MaCK|as_crispy_field }}
+                </div>     
                 <div class="form-group col-md-2 mb-0">
-                    {{ form.KRISet|as_crispy_field }}
-                </div>       
+                    {{ form.FromDate|as_crispy_field }}
+                </div>     
                 <div class="form-group col-md-2 mb-0">
-                    {{ form.KRILoss|as_crispy_field }}
-                </div>                     
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-11 mb-0">
-                    {{ form.Category|as_crispy_field }}
-                </div>                
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-6 mb-0">
-                    {{ form.Industry|as_crispy_field }}
-                </div>                
-                <div class="form-group col-md-5 mb-0">
-                    {{ form.Area|as_crispy_field }}
-                </div>                
+                    {{ form.ToDate|as_crispy_field }}
+                </div>     
+                <br>
             </div>
             <input type="submit" name="para_submit" value="Submit">
             <br>
@@ -48,31 +35,21 @@
                   <tr>
                       <th class="header" scope="col">Count</th>
                       <th class="header" scope="col">Version</th>
-                      <th class="header" scope="col">Industry</th>
-                      <th class="header" scope="col">Area</th>
-                      <th class="header" scope="col">Age</th>
-                      <th class="header" scope="col">Capital</th>
-                      <th class="header" scope="col">Report</th>                      
-                      <th class="header" scope="col">ToYear</th>
-                      <th class="header" scope="col">FromYear</th>
-                      <th class="header" scope="col">KRI set</th>
-                      <th class="header" scope="col">KRI loss</th>
+                      <th class="header" scope="col">DatasetType</th>
+                      <th class="header" scope="col">MaCK</th>
+                      <th class="header" scope="col">FromDate</th>
+                      <th class="header" scope="col">ToDate</th>
                   </tr>
                   </thead>
                   <tbody>
                   {% for message in message_list %}
                       <tr>
+                        <td>{{ message.5 }}</td>
+                        <td>{{ message.4 }}</td>
                         <td>{{ message.0 }}</td>
                         <td>{{ message.1 }}</td>
                         <td>{{ message.2 }}</td>
                         <td>{{ message.3 }}</td>
-                        <td>{{ message.4 }}</td>
-                        <td>{{ message.5 }}</td>
-                        <td>{{ message.6 }}</td>
-                        <td>{{ message.7 }}</td>
-                        <td>{{ message.8 }}</td>
-                        <td>{{ message.9 }}</td>
-                        <td>{{ message.10 }}</td>
                       </tr>
                   {% endfor %}
                   </tbody>

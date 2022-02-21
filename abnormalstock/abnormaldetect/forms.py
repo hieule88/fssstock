@@ -2,9 +2,9 @@ from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
 from abnormaldetect.models import LogMessage
 from abnormaldetect import cmdbackend, admin
-
+from abnormaldetect.source.upload_to_db import connect_data
 from abnormalstock import settings
-
+import cx_Oracle
 class UserIndexForm(forms.Form):
     #Query riskprofile of DTNT
     TaxCode = forms.CharField(label = "TaxCode", required = True)
@@ -18,16 +18,11 @@ class UserReconcileForm(forms.Form):
     Area = forms.ChoiceField(choices  = ref_khuvuc)    
 
 class UserPredictionForm(forms.Form):
-    #Init every time load page
-    def __init__(self, *args, **kwargs):
-        super(UserPredictionForm, self).__init__(*args, **kwargs)
-        # set_dataversion = cmdbackend.task_para_list('VERROOTDESC')
-        # CHANGE TO READ FROM DATABASE
-        set_dataversion = ['POPULAR', 'VOLUMN', 'VOLATILITY', 'TREND', 'MOMENTUM', 'ADDFA', 'FULL']
-        ref_dataversion = [(type, type) 
-                    for i, type in enumerate(set_dataversion)]          
-        self.fields['DataVersion'] = forms.ChoiceField(
-            choices=ref_dataversion )      
+    # Init every time load page
+    set_datatype = ['POPULAR', 'VOLUMN', 'VOLATILITY', 'TREND', 'MOMENTUM', 'ADDFA', 'FULL']
+    data_types = [(type, type) for i, type in enumerate(set_datatype)]    
+
+    DatasetType = forms.ChoiceField(label = "DATASET TYPE", choices = data_types)     
     MaCK = forms.ChoiceField(label = "MACK", choices  = admin.PARAMS['MACK'], required= True, initial='ALL')
     FromDate = forms.CharField(label = "FROMDATE", required= True)
     ToDate = forms.CharField(label = "TODATE", required= True)
@@ -124,23 +119,13 @@ class ActivityForm(forms.Form):
             choices=ref_dataversion )  
 
 class ChooseDataForm(forms.Form):
-    Age = forms.ChoiceField(choices  = settings.AGE_CHOICES)
-    Capital = forms.ChoiceField(choices  = settings.CAPITAL_CHOICES)
-    Year = forms.ChoiceField(choices  = settings.YEAR_CHOICES)
-    KRISet = forms.ChoiceField(label = "KRI set", choices  = settings.KRISET_CHOICES)
-    KRILoss = forms.ChoiceField(label = "KRI for loss prediction", choices  = settings.ESTIMATE_CHOICES)
-    set_bobctc = cmdbackend.task_para_list('BOBCTC')
-    ref_bobctc = [(row[0], row[1]) 
-                for row in set_bobctc]    
-    set_nganh = cmdbackend.task_para_list('NGANH')                
-    ref_nganh = [(row[0], row[1]) 
-                for row in set_nganh]    
-    set_khuvuc = cmdbackend.task_para_list('KHUVUC')                
-    ref_khuvuc = [(row[0], row[1]) 
-                for row in set_khuvuc]    
-    Category = forms.ChoiceField(choices  = ref_bobctc)
-    Industry = forms.ChoiceField(choices  = ref_nganh)
-    Area = forms.ChoiceField(choices  = ref_khuvuc)
+    set_datatype = ['POPULAR', 'VOLUMN', 'VOLATILITY', 'TREND', 'MOMENTUM', 'ADDFA', 'FULL']
+    data_types = [(type, type) for i, type in enumerate(set_datatype)]    
+
+    DatasetType = forms.ChoiceField(label = "DATASET TYPE", choices = data_types)    
+    MaCK = forms.ChoiceField(label = "MACK", choices  = admin.PARAMS['MACK'], required= True, initial='ALL')
+    FromDate = forms.CharField(label = "FROMDATE", required= True)
+    ToDate = forms.CharField(label = "TODATE", required= True)
 
 class ModellingForm(forms.Form):
     v_group='DEF_MODELLING'
@@ -158,84 +143,28 @@ class PreprocessingForm(forms.Form):
     #Init every time load page
     def __init__(self, *args, **kwargs):
         super(PreprocessingForm, self).__init__(*args, **kwargs)
-        set_dataversion = cmdbackend.task_choosing('INITDATASOURCE')
-        ref_dataversion = [(row[0], row[1]) 
-                    for row in set_dataversion]            
+        cursor, con = connect_data()
+        sql_query = "SELECT TASKID, REFVERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}'".format('TASKDATA')
+
+        cursor.execute(sql_query)
+        set_dataversion = cursor.fetchall()
+
+        ref_dataversion = []
+        for i, content in enumerate(set_dataversion):
+            cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+            ref_dataversion.append((i, cont))
         self.fields['Data'] = forms.ChoiceField(
             choices=ref_dataversion )    
 
     #Parameter    
-    set_balancedatamethod = cmdbackend.task_para_choice(v_group, 'BALANCEDATAMETHOD')
-    ref_balancedatamethod = [(row[0], row[1]) 
-                for row in set_balancedatamethod]    
-    set_chooseonehotencoder = cmdbackend.task_para_choice(v_group, 'CHOOSEONEHOTENCODER')
-    ref_chooseonehotencoder = [(row[0], row[1]) 
-                for row in set_chooseonehotencoder]    
-    set_n_components = cmdbackend.task_para_choice(v_group, 'N_COMPONENTS')
-    ref_n_components = [(row[0], row[1]) 
-                for row in set_n_components]    
-    set_scaler= cmdbackend.task_para_choice(v_group, 'SCALER')
-    ref_scaler = [(row[0], row[1]) 
-                for row in set_scaler]    
-    set_test_size = cmdbackend.task_para_choice(v_group, 'TEST_SIZE')    
-    ref_test_size = [(row[0], row[1]) 
-                for row in set_test_size]    
-    set_categoricalimputer = cmdbackend.task_para_choice(v_group, 'CATEGORICALIMPUTER')    
-    ref_categoricalimputer = [(row[0], row[1]) 
-                for row in set_categoricalimputer]         
-    set_categoricaloutliers = cmdbackend.task_para_choice(v_group, 'CATEGORICALOUTLIERS')    
-    ref_categoricaloutliers = [(row[0], row[1]) 
-                for row in set_categoricaloutliers]      
-    set_combinecategorical = cmdbackend.task_para_choice(v_group, 'COMBINECATEGORICAL')    
-    ref_combinecategorical = [(row[0], row[1]) 
-                for row in set_combinecategorical]      
-    set_numericimputer = cmdbackend.task_para_choice(v_group, 'NUMERICIMPUTER')    
-    ref_numericimputer = [(row[0], row[1]) 
-                for row in set_numericimputer]       
-    set_numericoutliers = cmdbackend.task_para_choice(v_group, 'NUMERICOUTLIERS')    
-    ref_numericoutliers = [(row[0], row[1]) 
-                for row in set_numericoutliers]    
-    set_numericoutliers = cmdbackend.task_para_choice(v_group, 'NUMERICOUTLIERS')    
-    ref_numericoutliers = [(row[0], row[1]) 
-                for row in set_numericoutliers]                                                                                
-    set_n_folds = cmdbackend.task_para_choice(v_group, 'N_FOLDS')    
-    ref_n_folds = [(row[0], row[1]) 
-                for row in set_n_folds]  
-    set_parameterforbalancedata = cmdbackend.task_para_choice(v_group, 'PARAMETERFORBALANCEDATA')    
-    ref_parameterforbalancedata = [(row[0], row[1]) 
-                for row in set_parameterforbalancedata]       
-    set_pcalabelling = cmdbackend.task_para_choice(v_group, 'PCALABELLING')    
-    ref_pcalabelling = [(row[0], row[1]) 
-                for row in set_pcalabelling]        
-    set_rateholdcol = cmdbackend.task_para_choice(v_group, 'RATEHOLDCOL')    
-    ref_rateholdcol = [(row[0], row[1]) 
-                for row in set_rateholdcol]      
-    set_rateholdrow = cmdbackend.task_para_choice(v_group, 'RATEHOLDROW')    
-    ref_rateholdrow = [(row[0], row[1]) 
-                for row in set_rateholdrow]     
-    set_svd_solver = cmdbackend.task_para_choice(v_group, 'SVD_SOLVER')    
-    ref_svd_solver = [(row[0], row[1]) 
-                for row in set_svd_solver]         
-    set_whis_boxplot = cmdbackend.task_para_choice(v_group, 'WHIS_BOXPLOT')    
-    ref_whis_boxplot = [(row[0], row[1]) 
-                for row in set_whis_boxplot]                                                                        
-    BALANCEDATAMETHOD= forms.ChoiceField(choices  = ref_balancedatamethod)
-    CATEGORICALIMPUTER= forms.ChoiceField(choices  = ref_categoricalimputer)
-    CATEGORICALOUTLIERS= forms.ChoiceField(choices  = ref_categoricaloutliers)
-    CHOOSEONEHOTENCODER= forms.ChoiceField(choices  = ref_chooseonehotencoder)
-    COMBINECATEGORICAL= forms.ChoiceField(choices  = ref_combinecategorical)
-    NUMERICIMPUTER= forms.ChoiceField(choices  = ref_numericimputer)
-    NUMERICOUTLIERS= forms.ChoiceField(choices  = ref_numericoutliers)
-    N_COMPONENTS= forms.ChoiceField(choices  = ref_n_components)
-    N_FOLDS= forms.ChoiceField(choices  = ref_n_folds)
-    PARAMETERFORBALANCEDATA= forms.ChoiceField(choices  = ref_parameterforbalancedata)
-    PCALABELLING= forms.ChoiceField(choices  = ref_pcalabelling)
-    RATEHOLDCOL= forms.ChoiceField(choices  = ref_rateholdcol)
-    RATEHOLDROW= forms.ChoiceField(choices  = ref_rateholdrow)
-    SCALER= forms.ChoiceField(choices  = ref_scaler)
-    SVD_SOLVER= forms.ChoiceField(choices  = ref_svd_solver)
-    TEST_SIZE= forms.ChoiceField(choices  = ref_test_size)
-    WHIS_BOXPLOT= forms.ChoiceField(choices  = ref_whis_boxplot)
+    StationarityTest = forms.ChoiceField(label = "STATIONARITYTEST", choices  = admin.PARAMS['STATIONARITYTEST'], required= True)
+    DiffTest = forms.ChoiceField(label = "DIFFTYPE", choices  = admin.PARAMS['DIFFTYPE'], required= True)
+    ReplaceNan = forms.ChoiceField(label = "REPLACENAN", choices  = admin.PARAMS['REPLACENAN'], required= True)
+    MinTradeDay = forms.IntegerField(label = "MINTRADEDAY", required= True, initial=60)
+
+    Method = forms.ChoiceField(label = "METHOD", choices  = admin.PARAMS['METHOD'], required= True)
+    MaxLag = forms.IntegerField(label = "MAXLAG", required= True, initial=5)
+    FeatureImpotance = forms.ChoiceField(label = "FEATUREIMPORTANCE", choices  = admin.PARAMS['FEATUREIMPORTANCE'], required= True)
 
 class LabellingForm(forms.Form):
     v_group='DEF_LABELLING'

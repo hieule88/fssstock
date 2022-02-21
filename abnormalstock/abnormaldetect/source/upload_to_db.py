@@ -1,6 +1,7 @@
 from abnormaldetect.source.backend import *
 # from backend import *
 import pandas as pd
+import cx_Oracle
 class Parser:
     def __init__(self, proc, table, p_ticker, p_start_date, p_end_date):
         self.table = table
@@ -38,7 +39,6 @@ class Parser:
             return pd.DataFrame(self.dataframe['TICKER'].unique())
         
         return self.dataframe
-import cx_Oracle
 
 def connect_data(): 
     dsn_tns = cx_Oracle.makedsn(BACKEND_IP_HOST_DB, BACKEND_PORT_DB, service_name=BACKEND_SERVICE_NAME_USE) # if needed, place an 'r' before any parameter in order to address special characters such as '\'.

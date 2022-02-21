@@ -25,7 +25,7 @@ class VarModel():
         self.scoreconvert = scoreconvert
         self.scorethresh = scorethresh
 
-    def binning(datacolumn):
+    def binning(self, datacolumn):
         max_col = datacolumn.max()
         max_col = float(max_col)
         bin_len = max_col/3
@@ -97,7 +97,8 @@ class VarModel():
     def find_anomalies(self, squared_errors):
         threshold = np.mean(squared_errors) + np.std(squared_errors)
         predictions = (squared_errors >= threshold).astype(int)
-        return predictions, threshold
+        residual = squared_errors - threshold
+        return predictions, residual
 
     def process(self, dataset, p_ticker):
         ticker_feature = dataset.loc[dataset['name']==p_ticker].drop(columns='name')
@@ -115,7 +116,6 @@ class VarModel():
 
         while(1):
             try:
-                self.maxlag = 5 
                 var_model = VAR(ticker_feature[column_to_model])
                 # select the best lag order
                 lag_results = var_model.select_order(self.maxlag)
@@ -128,18 +128,22 @@ class VarModel():
                 squared_errors = var_fitresults.resid.sum(axis=1)**2
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Score'}, inplace=True)
-                
-                predictions, threshold = self.find_anomalies(squared_errors) 
+                residual = price_errors.copy(deep= True)
+
+                price_errors = self.binning(price_errors)
+
+                predictions, res = self.find_anomalies(squared_errors) 
 
                 data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:] ], axis=1)
                 data['Predictions'] = predictions.values
+                data['Residual'] = residual.values
 
                 # print('\nLIST ABNORMAL DAYS OF TICKER:', p_ticker)
-                # print(data[['TXDATE', 'Score']].loc[data['Predictions'] ==1])
+                # print(data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1])
 
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
-                return data[['TXDATE', 'Score']].loc[data['Predictions'] ==1], top
+                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], top
             except Exception as e:
                 e = str(e)
                 e_index = 0

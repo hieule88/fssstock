@@ -12,9 +12,11 @@ from datetime import datetime
 import time
 random.seed(int(time.time()))
 
-def upload_to_DB(data, typeof, ref):
+def upload_to_DB(data, typeof, ref, model):
     cur, conn = connect_data()
     id = random.randint(1, 1000)
+    ver = ref
+    ref = model + '_' + ref
     if typeof == 'predict':
         for i in range(len(data[2])):
             if data[3][i] > 0:
@@ -22,20 +24,21 @@ def upload_to_DB(data, typeof, ref):
             else:
                 status = 'N'
             sql_insert = "INSERT INTO RES_PREDICT_FRAUD_2 (AUTOID, MACK, CDDATE, STATUS, RESIDUALS, SCORE, VERSION, REFVERSION, ID_MODELLING, ID_LABELLING, ID_PREPROCESSING) VALUES ({}, '{}', '{}', '{}', {}, {}, '{}', '{}', {}, {}, {}) "\
-                        .format(id,data[1],data[2][i] , status , 0.1, data[3][i], 'VAR', ref, 1, 1, 1)
+                        .format(id,data[1],data[2][i] , status , data[3][i], data[4][i], ver, ref, 1, 1, 1)
             cur.execute(sql_insert)
 
     elif typeof == 'feature':
         day = datetime.now().strftime("%D")
         for i in range(len(data[1])):
             sql_insert = "INSERT INTO RES_VARIABLE_SCORE_2 (AUTOID, MACK, CDDATE, VARIABLE, SCORE, VERSION, REFVERSION, ID_MODELLING, ID_LABELLING, ID_PREPROCESSING) VALUES ({}, '{}', '{}', '{}', {}, '{}', '{}', {}, {}, {}) "\
-                        .format(id, data[0], day, data[1][i], float(data[2][i]), 'VAR', ref, 1, 1, 1)
+                        .format(id, data[0], day, data[1][i], float(data[2][i]), ver, ref, 1, 1, 1)
             cur.execute(sql_insert)
     conn.commit()
 
+
 def RUNVARMODEL(ref, hyperparams):
     abnormdays = []
-    dataversion = hyperparams['DataVersion']
+    dataversion = hyperparams['DatasetType']
     mintradeday = int(hyperparams['MinTradeDay'])
     replacenan = hyperparams['ReplaceNan']
     TA_params = {'tolerance_fault': 14}
@@ -98,12 +101,15 @@ def RUNVARMODEL(ref, hyperparams):
             abnormpredict, top = var_model.process(ticker_infor, p_ticker)
             numabnormday = abnormpredict.size / 2
             if numabnormday > abnormthresh:
-                listresult = [numabnormday, p_ticker, abnormpredict['TXDATE'].tolist(), abnormpredict['Score'].tolist(), top.keys()]
+                listresult = [numabnormday, p_ticker, abnormpredict['TXDATE'].tolist(), abnormpredict['Residual'].tolist(), abnormpredict['Score'].tolist(), top.keys()]
                 abnormdays.append(listresult)
-                upload_to_DB(listresult, typeof= 'predict', ref= ref)
-                upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', ref= ref)
+                upload_to_DB(listresult, typeof= 'predict', ref= ref, model = 'VAR')
+                upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', ref= ref, model = 'VAR')
+
+
             # ticker_feature = ticker_feature.drop(columns=['BBM_14_2.0','BBU_14_2.0'])
             # print(set(ticker_feature.columns) - set(column_to_model))
+ 
         except Exception as e:
             count_error = count_error+1
             print(str(e) + ' at Ticker: ', p_ticker)
