@@ -389,10 +389,11 @@ def userriskprofile(request, reflinkid=''):
 def home(request):
     context = {'vendor': 'FSS'}
     try:
-        queryset =  cmdbackend.task_para_get('DICTKRI')
-        context = {
-            "message_list": queryset
-        }    
+        # queryset =  cmdbackend.task_para_get('DICTKRI')
+        # context = {
+        #     "message_list": queryset
+        # }  
+        pass  
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
@@ -755,15 +756,13 @@ def tasksubmit(request):
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
-                    para_content = 'AUTOMODELLING/REFTTR: [Y/'
-                    para_content = para_content + cd['REFTTR'] + ']'
-                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')    
+                    para_content = 'AUTOMODELLING'
+                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
+                    # cmdbackend.autorun(reftaskid)
         else:
             form = AutoRunForm()   
-        querycases = cmdbackend.task_para_get('AUTORUNCASES')
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)
         context = {
-            "group_cases": querycases,
             "message_list": queryset,
             "form": form
         }  
@@ -776,17 +775,22 @@ def tasksubmit(request):
 def taskmodelling(request):
     context = {'vendor': 'FSS'}
     try:
+        results = []
         taskcd='MODELLING'
         if request.method == "POST":
             form = ModellingForm(request.POST)
             if form.is_valid():
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
-                    reftaskid = cd['Data']
-                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,'MODELLING',0,'')
+                    reftaskid = cd['Data'] #reftaskid:: id of labelling
+                    paracontent = cmdbackend.trace_log_modelling(reftaskid) #taskid: id of modelling
+                    results = cmdbackend.task_pipeline_submit(taskcd,reftaskid,paracontent, '', '')
+                    # cmdbackend.user_prediction(taskid, reftaskid, 1000)
         else:
             form = ModellingForm()   
-        queryset =  cmdbackend.task_log_activity(taskcd,'',0)
+        queryset = []
+        queryset.append(cmdbackend.task_log_activity(taskcd,'',0))
+        queryset.append(results)
         context = {
             "message_list": queryset,
             "form": form
@@ -808,20 +812,14 @@ def taskpreprocessing(request):
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
                     para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE: ['
-                    para_content = para_content + cd['STATIONARITYTEST'] + '/'
-                    para_content = para_content + cd['DIFFTYPE'] + '/'
-                    para_content = para_content + cd['REPLACENAN'] + '/'
-                    para_content = para_content + cd['MINTRADEDAY'] + '/'
-                    para_content = para_content + cd['METHOD'] + '/'
-                    para_content = para_content + cd['MAXLAG'] + '/'
-                    para_content = para_content + cd['FEATUREIMPORTANCE'] + ']'
-                    cur, conn = connect_data()
-                    sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, TASKEND, STATUS, SCHEDULECD, PARACONTENT, LOGCONTENT) VALUES \
-                                            ('{}', {}, {}, '{}', '{}', {}, {}, {}, '{}', '{}', '{}', '{}', '{}') "\
-                                            .format('INITDATASOURCE', 'null', 'null', reftaskid, reftaskid, reftaskid, reftaskid, 'null', 'null', 'null', para_content, 'null')
-                    cur.execute(sql_insert)
-                    conn.commit()
-
+                    para_content = para_content + cd['StationarityTest'] + '/'
+                    para_content = para_content + cd['DiffTest'] + '/'
+                    para_content = para_content + cd['ReplaceNan'] + '/'
+                    para_content = para_content + str(cd['MinTradeDay']) + '/'
+                    para_content = para_content + cd['Method'] + '/'
+                    para_content = para_content + str(cd['MaxLag']) + '/'
+                    para_content = para_content + cd['FeatureImpotance'] + ']'
+                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
         else:
             form = PreprocessingForm()   
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)
@@ -845,19 +843,12 @@ def tasklabelling(request):
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
-                    para_content = 'BOOTSTRAP/EPS/INIT/MAX_ITER/MAX_SAMPLE/METRIC/MIN_SAMPLES/NAME_METHOD/N_CLUSTERS/N_ESTIMATORS/N_NEIGHBORS/RADIUSTHRESHOLD: ['
-                    para_content = para_content + cd['BOOTSTRAP'] + '/'
-                    para_content = para_content + cd['EPS'] + '/'
-                    para_content = para_content + cd['INIT'] + '/'
-                    para_content = para_content + cd['MAX_ITER'] + '/'
-                    para_content = para_content + cd['MAX_SAMPLE'] + '/'
-                    para_content = para_content + cd['METRIC'] + '/'
-                    para_content = para_content + cd['MIN_SAMPLES'] + '/'
-                    para_content = para_content + cd['NAME_METHOD'] + '/'
-                    para_content = para_content + cd['N_CLUSTERS'] + '/'
-                    para_content = para_content + cd['N_ESTIMATORS'] + '/'
-                    para_content = para_content + cd['N_NEIGHBORS'] + '/'
-                    para_content = para_content + cd['RADIUSTHRESHOLD'] + ']'
+                    para_content = 'FITHRESHOLD/TOPFEATURE/SCORECONVERT/SCORETHRESHOLD/ABNORMTHRESHOLD: ['
+                    para_content = para_content + str(cd['FIThreshold']) + '/'
+                    para_content = para_content + str(cd['TopFeature']) + '/'
+                    para_content = para_content + cd['ScoreConvert'] + '/'
+                    para_content = para_content + str(cd['ScoreThreshold']) + '/'
+                    para_content = para_content + str(cd['AbnormThreshold']) + ']'
                     cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
         else:
             form = LabellingForm()   

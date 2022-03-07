@@ -132,9 +132,11 @@ class ModellingForm(forms.Form):
     #Init every time load page
     def __init__(self, *args, **kwargs):
         super(ModellingForm, self).__init__(*args, **kwargs)
-        set_dataversion = cmdbackend.task_choosing('CLASSIFICATION')
-        ref_dataversion = [(row[0], row[1]) 
-                    for row in set_dataversion]            
+        set_dataversion = cmdbackend.task_choosing('LABELLING')
+        ref_dataversion = []
+        for i, content in enumerate(set_dataversion):
+            cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+            ref_dataversion.append((content[0], cont))
         self.fields['Data'] = forms.ChoiceField(
             choices=ref_dataversion )  
 
@@ -143,16 +145,11 @@ class PreprocessingForm(forms.Form):
     #Init every time load page
     def __init__(self, *args, **kwargs):
         super(PreprocessingForm, self).__init__(*args, **kwargs)
-        cursor, con = connect_data()
-        sql_query = "SELECT TASKID, REFVERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}'".format('TASKDATA')
-
-        cursor.execute(sql_query)
-        set_dataversion = cursor.fetchall()
-
+        set_dataversion = cmdbackend.task_choosing('TASKDATA')
         ref_dataversion = []
         for i, content in enumerate(set_dataversion):
             cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
-            ref_dataversion.append((i, cont))
+            ref_dataversion.append((content[0], cont))
         self.fields['Data'] = forms.ChoiceField(
             choices=ref_dataversion )    
 
@@ -172,59 +169,18 @@ class LabellingForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(LabellingForm, self).__init__(*args, **kwargs)
         set_dataversion = cmdbackend.task_choosing('PREPROCESSING')
-        ref_dataversion = [(row[0], row[1]) 
-                    for row in set_dataversion]            
+        ref_dataversion = []
+        for i, content in enumerate(set_dataversion):
+            cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+            ref_dataversion.append((content[0], cont))
         self.fields['Data'] = forms.ChoiceField(
-            choices=ref_dataversion )      
+            choices=ref_dataversion )     
     #Parameter    
-    set_bootstrap= cmdbackend.task_para_choice(v_group, 'BOOTSTRAP')
-    ref_bootstrap = [(row[0], row[1]) 
-                for row in set_bootstrap]  
-    set_eps= cmdbackend.task_para_choice(v_group, 'EPS')
-    ref_eps = [(row[0], row[1]) 
-                for row in set_eps]  
-    set_max_sample= cmdbackend.task_para_choice(v_group, 'MAX_SAMPLE')
-    ref_max_sample = [(row[0], row[1]) 
-                for row in set_max_sample]  
-    set_min_samples= cmdbackend.task_para_choice(v_group, 'MIN_SAMPLES')
-    ref_min_samples = [(row[0], row[1]) 
-                for row in set_min_samples]  
-    set_name_method= cmdbackend.task_para_choice(v_group, 'NAME_METHOD')
-    ref_name_method = [(row[0], row[1]) 
-                for row in set_name_method]  
-    set_n_clusters= cmdbackend.task_para_choice(v_group, 'N_CLUSTERS')
-    ref_n_clusters = [(row[0], row[1]) 
-                for row in set_n_clusters]  
-    set_n_estimators= cmdbackend.task_para_choice(v_group, 'N_ESTIMATORS')
-    ref_n_estimators = [(row[0], row[1]) 
-                for row in set_n_estimators]  
-    set_n_neighbors= cmdbackend.task_para_choice(v_group, 'N_NEIGHBORS')
-    ref_n_neighbors = [(row[0], row[1]) 
-                for row in set_n_neighbors]  
-    set_init= cmdbackend.task_para_choice(v_group, 'INIT')
-    ref_init = [(row[0], row[1]) 
-                for row in set_init]  
-    set_max_iter= cmdbackend.task_para_choice(v_group, 'MAX_ITER')
-    ref_max_iter = [(row[0], row[1]) 
-                for row in set_max_iter]   
-    set_metric= cmdbackend.task_para_choice(v_group, 'METRIC')
-    ref_metric = [(row[0], row[1]) 
-                for row in set_metric]    
-    set_radiusthreshold= cmdbackend.task_para_choice(v_group, 'RADIUSTHRESHOLD')
-    ref_radiusthreshold = [(row[0], row[1]) 
-                for row in set_radiusthreshold]                                                                
-    BOOTSTRAP= forms.ChoiceField(choices  = ref_bootstrap)
-    EPS= forms.ChoiceField(choices  = ref_eps)
-    INIT= forms.ChoiceField(choices  = ref_init)
-    MAX_ITER= forms.ChoiceField(choices  = ref_max_iter)
-    MAX_SAMPLE= forms.ChoiceField(choices  = ref_max_sample)
-    METRIC= forms.ChoiceField(choices  = ref_metric)
-    MIN_SAMPLES= forms.ChoiceField(choices  = ref_min_samples)
-    NAME_METHOD= forms.ChoiceField(choices  = ref_name_method)
-    N_CLUSTERS= forms.ChoiceField(choices  = ref_n_clusters)
-    N_ESTIMATORS= forms.ChoiceField(choices  = ref_n_estimators)
-    N_NEIGHBORS= forms.ChoiceField(choices  = ref_n_neighbors)
-    RADIUSTHRESHOLD= forms.ChoiceField(choices  = ref_radiusthreshold)
+    FIThreshold = forms.ChoiceField(label = "FITHRESHOLD", choices  = admin.PARAMS['FITHRESHOLD'], required= True)
+    TopFeature = forms.IntegerField(label = "TOPFEATURE", required= True, initial=15)
+    ScoreConvert = forms.ChoiceField(label = "SCORECONVERT", choices  = admin.PARAMS['SCORECONVERT'], required= True)
+    ScoreThreshold = forms.ChoiceField(label = "SCORETHRESHOLD", choices  = admin.PARAMS['SCORETHRESHOLD'], required= True)
+    AbnormThreshold = forms.IntegerField(label = "ABNORMTHRESHOLD", required= True, initial=14)
     
 class ClassificationForm(forms.Form):
     v_group='DEF_CLASSIFICATION'
@@ -280,9 +236,10 @@ class AutoRunForm(forms.Form):
     #Init every time load page
     def __init__(self, *args, **kwargs):
         super(AutoRunForm, self).__init__(*args, **kwargs)
-        set_dataversion = cmdbackend.task_choosing('INITDATASOURCE')
-        ref_dataversion = [(row[0], row[1]) 
-                    for row in set_dataversion]            
+        set_dataversion = cmdbackend.task_choosing('TASKDATA')
+        ref_dataversion = []
+        for i, content in enumerate(set_dataversion):
+            cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+            ref_dataversion.append((content[0], cont))
         self.fields['Data'] = forms.ChoiceField(
-            choices=ref_dataversion )  
-    REFTTR = forms.ChoiceField(label = "Using TTR result", choices  = settings.TTR_CHOICES)
+            choices=ref_dataversion ) 

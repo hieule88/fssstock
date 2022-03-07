@@ -14,46 +14,23 @@
         </div>
         <div class="form-row">
             <div class="form-group col-md-2 mb-0">
-                {{ form.BOOTSTRAP|as_crispy_field }}
+                {{ form.FIThreshold|as_crispy_field }}
             </div>                
             <div class="form-group col-md-2 mb-0">
-                {{ form.EPS|as_crispy_field }}
+                {{ form.TopFeature|as_crispy_field }}
             </div>                
             <div class="form-group col-md-2 mb-0">
-                {{ form.INIT|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.MAX_ITER|as_crispy_field }}
-            </div>                
+                {{ form.ScoreConvert|as_crispy_field }}
+            </div>                              
         </div>        
         <div class="form-row">
             <div class="form-group col-md-2 mb-0">
-                {{ form.MAX_SAMPLE|as_crispy_field }}
+                {{ form.ScoreThreshold|as_crispy_field }}
             </div>                
             <div class="form-group col-md-2 mb-0">
-                {{ form.METRIC|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.MIN_SAMPLES|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.NAME_METHOD|as_crispy_field }}
-            </div>                
-        </div>        
-        <div class="form-row">
-            <div class="form-group col-md-2 mb-0">
-                {{ form.N_CLUSTERS|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.N_ESTIMATORS|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.N_NEIGHBORS|as_crispy_field }}
-            </div>                
-            <div class="form-group col-md-2 mb-0">
-                {{ form.RADIUSTHRESHOLD|as_crispy_field }}
-            </div>                
-        </div>         
+                {{ form.AbnormThreshold|as_crispy_field }}
+            </div>                               
+        </div>               
         <input type="submit" name="para_submit" value="Submit">
         <br>
         {% if message_list %}

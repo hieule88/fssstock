@@ -14,9 +14,25 @@
         </div>
          <input type="submit" name="para_submit" value="Submit">
         <br>
-        {% if message_list %}
+        {% if message_list.1 %}
+            <a href="javascript:export_data()">Export table data</a>
+            {% with message_list_result=message_list.1 %}
+            {% include "abnormaldetect/userprediction_A.html" %}      
+            {% endwith %}
+            <script>
+                $('#sortTable').DataTable();
+            </script>
+            <a href="javascript:export_data()">Export table data</a>
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}          
+        <br>
+        {% if message_list.0 %}
             <h3>Task log: Modelling</h3>
+            {% with message_list_ref=message_list.0 %}
+            
             {% include "abnormaldetect/tasklog_basic.html" %}
+            {% endwith %}
         {% else %}
             <p>Data is empty</p>
         {% endif %}            

@@ -1,3 +1,4 @@
-a= True
-print(not a)
+a = []
+a.append([])
+a.append([])
 print(a)

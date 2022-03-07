@@ -166,3 +166,5 @@ class VarModel():
             coef_dict = dict(sorted(coef_dict.items(), key= lambda item: item[1], reverse=True)[1 : self.topfeature + 1])
             
             return coef_dict
+        elif self.featureimportance == 'varcorr':
+            print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')

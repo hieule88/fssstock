@@ -11,17 +11,17 @@
   </tr>
     </thead>
     <tbody>
-    {% for message in message_list %}
+    {% for message in message_list_ref %}
         <tr>
-          <td>{{ message.3 | date:'d-m-Y H:i'}}</td>
-          <td>{{ message.6 }}</td>
-          <td>{{ message.8 }}</td>
-          <td>{{ message.9 }}</td>
+          <td>{{ message.3 }}</td>
+          <td>{{ message.4 }}</td>
+          <td>{{ message.1 }}</td>
+          <td>{{ message.2 }}</td>
           <td>
-            <p style = "word-wrap: break-word;">{{ message.2 }}</p>
+            <p style = "word-wrap: break-word;">{{ message.10 }}</p>
           </td>
-          <td>{{ message.7 }}</td>
-          <td>{{ message.10 }}</td>
+          <td>{{ message.8 }}</td>
+          <td>{{ message.11 }}</td>
         </tr>
     {% endfor %}
     </tbody>
