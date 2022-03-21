@@ -1,5 +1,5 @@
 pandas
-nunmpy
+numpy
 tqdm
 pandas_ta
 statsmodels
@@ -11,5 +11,5 @@ django-sitetree
 django-crispy_forms
 cx_oracle
 scikit-learn
-celery
+celery==4.4.7
 seaborn

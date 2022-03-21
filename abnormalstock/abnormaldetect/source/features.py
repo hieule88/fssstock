@@ -170,27 +170,27 @@ class PreProcessor():
         data.fillna(value= 0, inplace= True)
         return data
 
-if __name__ =='__main__':
-    dataset = pd.DataFrame(pd.read_csv('./dataset/TradingHistory.csv'))
-    dataset.drop(columns=['Unnamed: 0'], inplace=True)
-    tickers = pd.DataFrame(pd.read_csv('./dataset/Ticker.csv')['TICKER'])
-    preprocessor = PreProcessor()
+# if __name__ =='__main__':
+#     dataset = pd.DataFrame(pd.read_csv('./dataset/TradingHistory.csv'))
+#     dataset.drop(columns=['Unnamed: 0'], inplace=True)
+#     tickers = pd.DataFrame(pd.read_csv('./dataset/Ticker.csv')['TICKER'])
+#     preprocessor = PreProcessor()
 
-    for row in tqdm(tickers.iterrows(), desc= "Saving Ticker's Feature: ", total= len(tickers.index)):
-    # Load ticker infor
-        p_ticker = row[1]['TICKER']
+#     for row in tqdm(tickers.iterrows(), desc= "Saving Ticker's Feature: ", total= len(tickers.index)):
+#     # Load ticker infor
+#         p_ticker = row[1]['TICKER']
         
-        ticker_infor = dataset.loc[dataset['TICKER']==p_ticker]
-        if len(ticker_infor.index) < 60 : # Bo sung tham so toi thieu ngay giao dich
-            continue
-        ticker_infor = FeatureTicker(ticker_infor, name = p_ticker)
-        ticker_infor.popular.reset_index(inplace=True, drop=True)
-        ticker_infor = ticker_infor.popular
+#         ticker_infor = dataset.loc[dataset['TICKER']==p_ticker]
+#         if len(ticker_infor.index) < 60 : # Bo sung tham so toi thieu ngay giao dich
+#             continue
+#         ticker_infor = FeatureTicker(ticker_infor, name = p_ticker)
+#         ticker_infor.popular.reset_index(inplace=True, drop=True)
+#         ticker_infor = ticker_infor.popular
 
-        ticker_infor = preprocessor.preprocess(ticker_infor)
+#         ticker_infor = preprocessor.preprocess(ticker_infor)
 
-        ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
-        # Save to csv
-        filepath = './dataset/Features.csv'
-        header = 1 - os.path.exists(filepath)
-        ticker_infor.to_csv(filepath, mode='a', header=header, index=False)
+#         ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
+#         # Save to csv
+#         filepath = './dataset/Features.csv'
+#         header = 1 - os.path.exists(filepath)
+#         ticker_infor.to_csv(filepath, mode='a', header=header, index=False)

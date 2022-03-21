@@ -676,6 +676,8 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
 
             results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
             results = results.get()
+            print(results)
+            quit()
             cur.execute(sql_insert)
             conn.commit()
         else:
