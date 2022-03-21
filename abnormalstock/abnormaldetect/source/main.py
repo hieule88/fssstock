@@ -10,7 +10,15 @@ import argparse
 import random
 from datetime import datetime
 import time
+import matplotlib.pyplot as plt 
 random.seed(int(time.time()))
+
+def upload_image(data, typeof, taskid, ref_id):
+    if typeof == 'sq_error':
+        
+        pass
+    elif typeof == 'residual':
+        pass
 
 def upload_to_DB(data, typeof, taskid, ref_id ,model):
     cur, conn = connect_data()

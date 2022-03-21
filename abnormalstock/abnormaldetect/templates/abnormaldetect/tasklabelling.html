@@ -33,9 +33,54 @@
         </div>               
         <input type="submit" name="para_submit" value="Submit">
         <br>
+        <h3>Parameters:</h3>
+        <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+              <th class="header" scope="col">NAME</th>
+              <th class="header" scope="col">MEANING</th>                      
+              <th class="header" scope="col">VALUE</th>
+              <th class="header" scope="col">NOTE</th>
+          </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>FIThreshold</td>
+                    <td>Ngưỡng tính toán Feature impotance</td>
+                    <td>Default = 0.1</td>
+                    <td>Feature có điểm lớn hơn ngưỡng này được đánh giá là feature quan trọng</td>
+                </tr>
+                <tr>
+                    <td>TopFeature</td>
+                    <td>Số lượng features quan trọng tối đa hiển thị ra bảng kết quả của mỗi mã</td>
+                    <td>Default = 15</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>ScoreConvert</td>
+                    <td>Cách biến đổi chuỗi thành chuỗi dừng</td>
+                    <td>Log, diffty, mean</td>
+                    <td>Các chuỗi sau khi kiểm định tính dừng cho kết quả không phải chuỗi dừng cần biến đổi thành chuỗi dừng để đưa vào mô hình</td>
+                </tr>
+                <tr>
+                    <td>ScoreThreshold</td>
+                    <td>Ngưỡng đánh giá là bất thường của từng ngày</td>
+                    <td>Default = 0.1</td>
+                    <td>Các ngày có Residual lớn hơn Score Threshold được đánh giá là bất thường và được chấm điểm theo ScoreConvert</td>
+                </tr>
+                <tr>
+                    <td>AbnormalThreshold</td>
+                    <td>Ngưỡng đánh giá là bất thường của từng mã</td>
+                    <td>Default = 14</td>
+                    <td>Các mã có số ngày được nhận định là bất thường nhiều hơn AbnormalThreshold thì được đánh giá là có bất thường</td>
+                </tr>
+            </tbody>
+        </table>
         {% if message_list %}
             <h3>Task log: Labelling</h3>
+            {% with message_list_ref=message_list %}
             {% include "abnormaldetect/tasklog_basic.html" %}
+            {% endwith %}
         {% else %}
             <p>Data is empty</p>
         {% endif %}            

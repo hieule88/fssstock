@@ -202,25 +202,33 @@ def init_taskid():
     cursor.execute(sql_findver)
     max_index = cursor.fetchall()[0][0]
     return max_index+1
-def assign_param(hyperparams, hyperparams_tomodel,keys, num_params, index_param, ref_id):
+def assign_param(results, hyperparams, hyperparams_tomodel,keys, num_params, index_param, ref_id):
     if index_param == num_params:
         taskid = init_taskid()
-        RUNVARMODEL(taskid, ref_id, hyperparams_tomodel)
+        results.append(tasks.runtask.apply_async(args=[taskid, ref_id, hyperparams_tomodel]))
     else:
         for i in range(len(hyperparams[keys[index_param]])):
             hyperparams_tomodel[keys[index_param]] = hyperparams[keys[index_param]][i]
-            assign_param(hyperparams, hyperparams_tomodel, keys, num_params, index_param + 1, ref_id)
+            assign_param(results, hyperparams, hyperparams_tomodel, keys, num_params, index_param + 1, ref_id)
 
-def autorun(reftaskid):
+def autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time):
     try:
+        task_id = init_taskid()
+    
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(reftaskid)
+        sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+        cursor.execute(sql_findref)
+        ref_data = cursor.fetchall()[0][0]
+
+        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
         cursor.execute(sql_refversion)
         ref = cursor.fetchall()[0][0]
+
         sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
         cursor.execute(sql_taskdata)
         taskdata = cursor.fetchall()[0][0]
+
         taskdata = taskdata.split(':')[1].split('-')
 
         hyperparams = {}
@@ -247,9 +255,16 @@ def autorun(reftaskid):
         keys = hyperparams.keys()
         num_params = len(keys)
 
-
         ref_id = ref + '/' + '-1' + '/' + '-1'
-        assign_param(hyperparams, hyperparams_tomodel, keys, num_params, 0, ref_id)
+        p_paracontent = p_paracontent + str(task_id) + '\\' +  str(list(hyperparams.keys())) + '\\'+  str(list(hyperparams.values())) 
+        sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
+        results = []
+        assign_param(results, hyperparams, hyperparams_tomodel, list(keys), num_params, 0, ref_id)
+        cursor.execute(sql_insert)
+        con.commit()
+        return results
     except:
         raise
 #Get frauditem belong to the model
@@ -601,53 +616,15 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
         strt_time = time.ctime()
         ver = datetime.now().strftime("%D:%H:%M:%S") + '-' + str(time.time())
         cur, conn = connect_data()
-        sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-        cur.execute(sql_findref)
-        ref_data = cur.fetchall()[0][0]
+        
         results = []
         if p_taskcd == 'AUTOMODELLING':
-            task_id = init_taskid()
-            sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
-                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
-                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
-            # sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, TASKEND, STATUS, SCHEDULECD, PARACONTENT, LOGCONTENT) VALUES \
-            #                         ('{}', {}, {}, '{}', '{}', {}, {}, {}, '{}', '{}', '{}', '{}', '{}') "\
-            #                         .format('PREPROCESSING', 'null', reftaskid, reftaskid, reftaskid, reftaskid, reftaskid, 'null', 'null', 'null', para_content, 'null')
-            sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-            cursor.execute(sql_refversion)
-            ref = cursor.fetchall()[0][0]
-            sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
-            cursor.execute(sql_taskdata)
-            taskdata = cursor.fetchall()[0][0]
-            taskdata = taskdata.split(':')[1].split('-')
+            results = autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time)
 
-            hyperparams = {}
-            hyperparams['StationarityTest'] = admin.stat_test
-            hyperparams['DiffTest'] = admin.diff_type
-            hyperparams['ReplaceNan'] = admin.replacenan
-            hyperparams['MinTradeDay'] = admin.mintradeday
-            hyperparams['Method'] = admin.method
-            hyperparams['MaxLag'] = admin.maxlag
-            hyperparams['FeatureImpotance']  = admin.feature_importance
-
-            hyperparams['FIThreshold'] = admin.fi_threshold
-            hyperparams['TopFeature'] = admin.topfeature
-            hyperparams['ScoreConvert'] = admin.score_convert
-            hyperparams['ScoreThreshold'] = admin.score_threshold
-            hyperparams['AbnormThreshold'] = admin.abnorm_threshold
-
-            hyperparams_tomodel = {}
-            hyperparams_tomodel['DatasetType'] = taskdata[0]
-            hyperparams_tomodel['MaCK'] = taskdata[1]
-            hyperparams_tomodel['FromDate'] = taskdata[2]
-            hyperparams_tomodel['ToDate'] = taskdata[3]
-
-            keys = hyperparams.keys()
-            num_params = len(keys)
-
-            ref_id = ref + '/' + '-1' + '/' + '-1'
-            assign_param(hyperparams, hyperparams_tomodel, keys, num_params, 0, ref_id)
         elif p_taskcd == 'MODELLING': 
+            sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cur.execute(sql_findref)
+            ref_data = cur.fetchall()[0][0]
             task_id = init_taskid()
             p_paracontent = p_paracontent + str(task_id)
             sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
@@ -697,14 +674,20 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['FromDate'] = taskdata[2]
             hyperparams['ToDate'] = taskdata[3]
 
-            results = RUNVARMODEL(task_id, ref_id, hyperparams)
+            results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
+            results = results.get()
+            cur.execute(sql_insert)
+            conn.commit()
         else:
+            sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cur.execute(sql_findref)
+            ref_data = cur.fetchall()[0][0]
             task_id = init_taskid()
             sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
                                     ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
                                     .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
-        cur.execute(sql_insert)
-        conn.commit()
+            cur.execute(sql_insert)
+            conn.commit()
         return results
     except:
         # Re-raise the exception.

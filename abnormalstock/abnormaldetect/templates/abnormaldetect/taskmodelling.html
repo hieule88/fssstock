@@ -10,32 +10,68 @@
         <div class="form-row">
             <div class="form-group col-md-9 mb-0">
                 {{ form.Data|as_crispy_field }}
-            </div>                
+            </div>
         </div>
          <input type="submit" name="para_submit" value="Submit">
         <br>
         {% if message_list.1 %}
             <a href="javascript:export_data()">Export table data</a>
             {% with message_list_result=message_list.1 %}
-            {% include "abnormaldetect/userprediction_A.html" %}      
+            {% include "abnormaldetect/userprediction_A.html" %}
             {% endwith %}
             <script>
                 $('#sortTable').DataTable();
             </script>
             <a href="javascript:export_data()">Export table data</a>
         {% else %}
-            <p>Data is empty</p>
-        {% endif %}          
+            <h4>Submit to see results</h4>
+        {% endif %}
         <br>
+        <h3>Result Explanation:</h3>
+        <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+              <th class="header" scope="col">NAME</th>
+              <th class="header" scope="col">MEANING</th>                      
+              <th class="header" scope="col">NOTE</th>
+          </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Số Ngày Nguy Cơ</td>
+                    <td>Số ngày được Model phát hiện là bất thường</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Các Ngày Nguy Cơ</td>
+                    <td>Các ngày được Model phát hiện là bất thường</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Residual</td>
+                    <td>Phần dư bất thường của các ngày nguy cơ</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Điểm số các ngày nguy cơ</td>
+                    <td>Đánh giá điểm bất thường của các ngày nguy cơ (theo ngưỡng và phân vị được chọn từ phần Labelling)</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Các biến quan trọng</td>
+                    <td>Các biến ảnh hưởng lớn đến dự đoán bất thường của Model</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
         {% if message_list.0 %}
             <h3>Task log: Modelling</h3>
-            {% with message_list_ref=message_list.0 %}
-            
+            {% with message_list_ref=message_list.0 %}  
             {% include "abnormaldetect/tasklog_basic.html" %}
             {% endwith %}
         {% else %}
             <p>Data is empty</p>
-        {% endif %}            
+        {% endif %}
         </form>
-    {% endif %}  
+    {% endif %}
 {% endblock %}

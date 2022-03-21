@@ -97,8 +97,7 @@ class VarModel():
     def find_anomalies(self, squared_errors):
         threshold = np.mean(squared_errors) + np.std(squared_errors)
         predictions = (squared_errors >= threshold).astype(int)
-        residual = squared_errors - threshold
-        return predictions, residual
+        return predictions, threshold
 
     def process(self, dataset, p_ticker):
         ticker_feature = dataset.loc[dataset['name']==p_ticker].drop(columns='name')
@@ -124,7 +123,6 @@ class VarModel():
 
                 var = VAR(ticker_feature[column_to_model])
                 var_fitresults = var.fit(selected_lag)
-
                 squared_errors = var_fitresults.resid.sum(axis=1)**2
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Score'}, inplace=True)
@@ -132,7 +130,7 @@ class VarModel():
 
                 price_errors = self.binning(price_errors)
 
-                predictions, res = self.find_anomalies(squared_errors) 
+                predictions, threshold = self.find_anomalies(squared_errors) 
 
                 data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:] ], axis=1)
                 data['Predictions'] = predictions.values
@@ -143,7 +141,9 @@ class VarModel():
 
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
-                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], top
+                
+                # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
+                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], top, squared_errors, threshold, ticker_feature['close'], 
             except Exception as e:
                 e = str(e)
                 e_index = 0

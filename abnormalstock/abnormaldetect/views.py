@@ -750,6 +750,7 @@ def tasksubmit(request):
     try:
         #Run modeling với tất cả các tham số mặc định
         taskcd = 'AUTOMODELLING'
+        results = []
         if request.method == "POST":
             form = AutoRunForm(request.POST)
             if form.is_valid():
@@ -757,13 +758,15 @@ def tasksubmit(request):
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
                     para_content = 'AUTOMODELLING'
-                    cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
+                    results = cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
                     # cmdbackend.autorun(reftaskid)
         else:
             form = AutoRunForm()   
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)
+
         context = {
             "message_list": queryset,
+            "message_list_result": results,
             "form": form
         }  
     except Exception as e:
@@ -823,6 +826,7 @@ def taskpreprocessing(request):
         else:
             form = PreprocessingForm()   
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)
+        print(queryset)
         context = {
             "message_list": queryset,
             "form": form

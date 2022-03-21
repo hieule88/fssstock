@@ -41,9 +41,66 @@
         
         <input type="submit" name="para_submit" value="Submit">
         <br>
+        <h3>Parameters:</h3>
+        <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+              <th class="header" scope="col">NAME</th>
+              <th class="header" scope="col">MEANING</th>                      
+              <th class="header" scope="col">VALUE</th>
+              <th class="header" scope="col">NOTE</th>
+          </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>METHOD</td>
+                    <td>Tên mô hình được sử dụng, từ đó hiển thị các phương pháp tiền xử lý phù hợp với mô hình</td>
+                    <td>Var, fem, tskmean, gakkmeans, kmedoids, lof</td>
+                    <td>Hiện tại, ứng dụng đang triển khai mô hình VAR, các mô hình khác sẽ được tiếp tục cập nhật. Mỗi mô hình yêu cầu các bước tiền xử lý không hoàn toàn giống nhau, yêu cầu chọn mục này đầu tiên trước khi lựa chọn các mục khác trong phần tiền xử lý</td>
+                </tr>
+                <tr>
+                    <td>STATIONARITYTEST</td>
+                    <td>Tên phương pháp kiểm định chuỗi dừng</td>
+                    <td>Adf, kpss, adf_kpss, pp, zivot_andrews</td>
+                    <td>Chuỗi dữ liệu cần được kiểm định tính dừng trước khi đưa vào những mô hình như mô hình VAR</td>
+                </tr>
+                <tr>
+                    <td>DIFFTYPE</td>
+                    <td>Cách biến đổi chuỗi thành chuỗi dừng</td>
+                    <td>Log, diffty, mean</td>
+                    <td>Các chuỗi sau khi kiểm định tính dừng cho kết quả không phải chuỗi dừng cần biến đổi thành chuỗi dừng để đưa vào mô hình</td>
+                </tr>
+                <tr>
+                    <td>REPLACENAN</td>
+                    <td>Phương pháp thay thế dữ liệu nan</td>
+                    <td>Interpolate, mean</td>
+                    <td>Dữ liệu dạng chuỗi ưu tiên dùng phương pháp nội suy do tính liên tục của dữ liệu</td>
+                </tr>
+                <tr>
+                    <td>MINTRADEDAY</td>
+                    <td>Số ngày giao dịch tối thiểu </td>
+                    <td>Default = 60</td>
+                    <td>Các mã CK trong dataset đã chọn có số ngày giao dịch thấp hơn MinTradeDay sẽ không được áp dụng mô hình phát hiện bất thường</td>
+                </tr>
+                <tr>
+                    <td>MAXLAG</td>
+                    <td>Độ trễ của mô hình VAR</td>
+                    <td>Default = 5</td>
+                    <td>Độ trễ để thực hiện tính toán theo mô hình VAR</td>
+                </tr>
+                <tr>
+                    <td>FEATUREIMPORTANCE</td>
+                    <td>Lựa chọn phương pháp tính độ quan trọng của các features</td>
+                    <td>Corr, varcorr</td>
+                    <td>Khi giá trị là corr tính theo phương pháp tương quan giữa các biến, khi giá trị là varcorr tính correlation theo mô hình VAR </td>
+                </tr>
+            </tbody>
+        </table>
         {% if message_list %}
             <h3>Task log: Preprocessing</h3>
+            {% with message_list_ref=message_list %}
             {% include "abnormaldetect/tasklog_basic.html" %}
+            {% endwith %}
         {% else %}
             <p>Data is empty</p>
         {% endif %}            
