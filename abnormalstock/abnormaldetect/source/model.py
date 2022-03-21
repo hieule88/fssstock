@@ -25,7 +25,7 @@ class VarModel():
         self.scoreconvert = scoreconvert
         self.scorethresh = scorethresh
 
-    def binning(datacolumn):
+    def binning(self, datacolumn):
         max_col = datacolumn.max()
         max_col = float(max_col)
         bin_len = max_col/3
@@ -115,7 +115,6 @@ class VarModel():
 
         while(1):
             try:
-                self.maxlag = 5 
                 var_model = VAR(ticker_feature[column_to_model])
                 # select the best lag order
                 lag_results = var_model.select_order(self.maxlag)
@@ -124,22 +123,27 @@ class VarModel():
 
                 var = VAR(ticker_feature[column_to_model])
                 var_fitresults = var.fit(selected_lag)
-
                 squared_errors = var_fitresults.resid.sum(axis=1)**2
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Score'}, inplace=True)
-                
+                residual = price_errors.copy(deep= True)
+
+                price_errors = self.binning(price_errors)
+
                 predictions, threshold = self.find_anomalies(squared_errors) 
 
                 data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:] ], axis=1)
                 data['Predictions'] = predictions.values
+                data['Residual'] = residual.values
 
                 # print('\nLIST ABNORMAL DAYS OF TICKER:', p_ticker)
-                # print(data[['TXDATE', 'Score']].loc[data['Predictions'] ==1])
+                # print(data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1])
 
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
-                return data[['TXDATE', 'Score']].loc[data['Predictions'] ==1], top
+                
+                # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
+                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], top, squared_errors, threshold, ticker_feature['close'], 
             except Exception as e:
                 e = str(e)
                 e_index = 0
@@ -162,3 +166,5 @@ class VarModel():
             coef_dict = dict(sorted(coef_dict.items(), key= lambda item: item[1], reverse=True)[1 : self.topfeature + 1])
             
             return coef_dict
+        elif self.featureimportance == 'varcorr':
+            print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')

@@ -1,3 +1,4 @@
+from unittest import result
 import cx_Oracle, time
 import pandas as pd
 from sklearn import tree
@@ -7,6 +8,9 @@ import pickle
 import base64
 import matplotlib.pyplot as plt
 from abnormaldetect.source.main import RUNVARMODEL
+from abnormaldetect.source.upload_to_db import connect_data
+from datetime import datetime
+from abnormaldetect import admin
 
 #User checking data
 def func_modelid_variable(v_modelid):    
@@ -138,13 +142,131 @@ def user_kriset(v_kriset):
         raise
 
  #User prediction
-def user_prediction(v_refversion, hyperparams, v_maxrows):    
+def user_prediction(taskid, v_refversion, v_maxrows):    
     try:
-        return RUNVARMODEL(v_refversion, hyperparams)
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(v_refversion)
+        cursor.execute(sql_refversion)
+        ref = cursor.fetchall()[0][0]
+        sql_idpreprocessing = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(v_refversion)
+        cursor.execute(sql_idpreprocessing)
+        id_preprocessing = cursor.fetchall()[0][0]
+        ref_id = str(ref) + '/' + str(v_refversion) + '/' + str(id_preprocessing)
+
+        sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
+        cursor.execute(sql_taskdata)
+        taskdata = cursor.fetchall()[0][0]
+        taskdata = taskdata.split(':')[1].split('-')
+
+        sql_preprocessing = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocessing)
+        cursor.execute(sql_preprocessing)
+        preprocessing = cursor.fetchall()[0][0]
+        preprocessing = preprocessing.split(': ')[1].split('/')
+
+        sql_labelling = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(v_refversion)
+        cursor.execute(sql_labelling)
+        labelling= cursor.fetchall()[0][0]
+        labelling = labelling.split(': ')[1].split('/')
+
+
+
+        hyperparams = {}
+        hyperparams['StationarityTest'] = preprocessing[0].split('[')[1]
+        hyperparams['DiffTest'] = preprocessing[1]
+        hyperparams['ReplaceNan'] = preprocessing[2]
+        hyperparams['MinTradeDay'] = preprocessing[3]
+        hyperparams['Method'] = preprocessing[4]
+        hyperparams['MaxLag'] = preprocessing[5]
+        hyperparams['FeatureImpotance']  = preprocessing[6].split(']')[0]
+
+        hyperparams['FIThreshold'] = labelling[0].split('[')[1]
+        hyperparams['TopFeature'] = labelling[1]
+        hyperparams['ScoreConvert'] = labelling[2]
+        hyperparams['ScoreThreshold'] = labelling[3]
+        hyperparams['AbnormThreshold'] = labelling[4].split(']')[0]
+
+        hyperparams['DatasetType'] = taskdata[0]
+        hyperparams['MaCK'] = taskdata[1]
+        hyperparams['FromDate'] = taskdata[2]
+        hyperparams['ToDate'] = taskdata[3]
+
+        return RUNVARMODEL(taskid, ref_id, hyperparams)
     except:
         # Re-raise the exception.
         raise        
 
+def init_taskid():
+    cursor, con = connect_data()
+    sql_findver = "SELECT MAX(TASKID) FROM TASKLOG_V2"
+    cursor.execute(sql_findver)
+    max_index = cursor.fetchall()[0][0]
+    return max_index+1
+def assign_param(results, hyperparams, hyperparams_tomodel,keys, num_params, index_param, ref_id):
+    if index_param == num_params:
+        taskid = init_taskid()
+        results.append(tasks.runtask.apply_async(args=[taskid, ref_id, hyperparams_tomodel]))
+    else:
+        for i in range(len(hyperparams[keys[index_param]])):
+            hyperparams_tomodel[keys[index_param]] = hyperparams[keys[index_param]][i]
+            assign_param(results, hyperparams, hyperparams_tomodel, keys, num_params, index_param + 1, ref_id)
+
+def autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time):
+    try:
+        task_id = init_taskid()
+    
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+        sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+        cursor.execute(sql_findref)
+        ref_data = cursor.fetchall()[0][0]
+
+        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+        cursor.execute(sql_refversion)
+        ref = cursor.fetchall()[0][0]
+
+        sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
+        cursor.execute(sql_taskdata)
+        taskdata = cursor.fetchall()[0][0]
+
+        taskdata = taskdata.split(':')[1].split('-')
+
+        hyperparams = {}
+        hyperparams['StationarityTest'] = admin.stat_test
+        hyperparams['DiffTest'] = admin.diff_type
+        hyperparams['ReplaceNan'] = admin.replacenan
+        hyperparams['MinTradeDay'] = admin.mintradeday
+        hyperparams['Method'] = admin.method
+        hyperparams['MaxLag'] = admin.maxlag
+        hyperparams['FeatureImpotance']  = admin.feature_importance
+
+        hyperparams['FIThreshold'] = admin.fi_threshold
+        hyperparams['TopFeature'] = admin.topfeature
+        hyperparams['ScoreConvert'] = admin.score_convert
+        hyperparams['ScoreThreshold'] = admin.score_threshold
+        hyperparams['AbnormThreshold'] = admin.abnorm_threshold
+
+        hyperparams_tomodel = {}
+        hyperparams_tomodel['DatasetType'] = taskdata[0]
+        hyperparams_tomodel['MaCK'] = taskdata[1]
+        hyperparams_tomodel['FromDate'] = taskdata[2]
+        hyperparams_tomodel['ToDate'] = taskdata[3]
+
+        keys = hyperparams.keys()
+        num_params = len(keys)
+
+        ref_id = ref + '/' + '-1' + '/' + '-1'
+        p_paracontent = p_paracontent + str(task_id) + '\\' +  str(list(hyperparams.keys())) + '\\'+  str(list(hyperparams.values())) 
+        sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
+        results = []
+        assign_param(results, hyperparams, hyperparams_tomodel, list(keys), num_params, 0, ref_id)
+        cursor.execute(sql_insert)
+        con.commit()
+        return results
+    except:
+        raise
 #Get frauditem belong to the model
 def user_predictversion(reflinkid):
     try:
@@ -462,17 +584,28 @@ def task_para_setup(paraname, paraval, yesnotag, actiontag):
         raise        
 
 #Submit Data for the Task
-def task_data_submit(p_bobctc, p_industry, p_area, p_age, p_capital, p_year, p_kriset, p_kriloss):
+def task_data_submit(p_datatype, p_mack, p_fromdate, p_todate):
     try:
-        con = cx_Oracle.connect(settings.BACKEND_DB)
-        cursor = con.cursor()
+        strt_time = time.ctime()
+        ref = datetime.now().strftime("%D:%H:%M:%S") + '-' + str(time.time())
+        p_paracontent = 'DATAVERSION-MACK-FROMDATE-TODATE:{}-{}-{}-{}'.format(p_datatype, p_mack, p_fromdate, p_todate)
+        cursor, con = connect_data()
+
         ret_count = cursor.var(int)
-        p_frdate = '01/01/2015'
-        p_todate = '31/12/' + p_year
-        p_cmdtype = 'P'
-        p_cmdsql = ''
-        cursor.callproc('SP_ENGINE_CHOOSE_DATASOURCE', [p_frdate, p_todate, p_bobctc, p_age, p_capital, p_industry, p_area, p_kriset, p_kriloss, p_cmdtype, p_cmdsql, ret_count])
+        sql_findver = "SELECT MAX(TASKID) FROM TASKLOG_V2"
+        cursor.execute(sql_findver)
+        max_index = cursor.fetchall()[0][0]
+        if max_index == None:
+            max_index = -1
+        sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) \
+                        VALUES ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}')"\
+                        .format('TASKDATA', max_index+1, 0, ref, ref, strt_time, strt_time, p_paracontent)
+        # sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, TASKEND, STATUS, SCHEDULECD, PARACONTENT, LOGCONTENT, CRONJOBID) \
+        #                 VALUES ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')"\
+        #                 .format('TASKDATA', max_index+1, 0, ref, ref, strt_time, strt_time, 'null', 'null', 'null', p_paracontent, 'null', 'null')
+        cursor.execute(sql_insert)                                     
         con.commit()
+
         return ret_count
     except:
         # Re-raise the exception.
@@ -480,30 +613,98 @@ def task_data_submit(p_bobctc, p_industry, p_area, p_age, p_capital, p_year, p_k
 
 def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_extversion):
     try:
-        if p_taskcd == 'TEST':
-            ret_count = tasks.runtask.apply_async(args=[p_reftaskid,p_taskcd]) 
-            return ret_count
-        else:
+        strt_time = time.ctime()
+        ver = datetime.now().strftime("%D:%H:%M:%S") + '-' + str(time.time())
+        cur, conn = connect_data()
+        
+        results = []
+        if p_taskcd == 'AUTOMODELLING':
+            results = autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time)
+
+        elif p_taskcd == 'MODELLING': 
+            sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cur.execute(sql_findref)
+            ref_data = cur.fetchall()[0][0]
+            task_id = init_taskid()
+            p_paracontent = p_paracontent + str(task_id)
+            sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
             con = cx_Oracle.connect(settings.BACKEND_DB)
             cursor = con.cursor()
-            ret_count = cursor.var(int)
-            cursor.callproc('SP_ENGINE_PROCESS_TASK_REQUEST', [p_reftaskid, p_paracontent, p_exttaskid, p_extversion, ret_count])
-            con.commit()
-            if (p_taskcd=='MODELLING'):
-                    v_taskid = ret_count.getvalue()
-                #Submit single task to celery for processing
-                    tasks.runtask.apply_async(args=[v_taskid,p_taskcd])
-            elif(p_taskcd=='AUTOMODELLING'):
-                v_taskid = ret_count.getvalue() #The ID of automodeling
-                #Submit single task to celery for processing
-                #p_reftaskid: trường hợp này là version dữ liệu
-                #p_paracontent: Tham số truyền vào cho chạy AutoModelling trong đó có REFTTR
-                runtaskall(v_taskid, p_reftaskid, p_paracontent)
-            return ret_count
+            sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cursor.execute(sql_refversion)
+            ref = cursor.fetchall()[0][0]         
+            id_preprocessing = p_paracontent.split(':')[1].split('/')[0]
+
+            ref_id = str(ref) + '\\' + str(p_reftaskid) + '\\' + str(id_preprocessing)
+            
+            sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
+            cursor.execute(sql_taskdata)
+            taskdata = cursor.fetchall()[0][0]
+            taskdata = taskdata.split(':')[1].split('-')
+
+            sql_preprocessing = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocessing)
+            cursor.execute(sql_preprocessing)
+            preprocessing = cursor.fetchall()[0][0]
+            preprocessing = preprocessing.split(': ')[1].split('/')
+
+            sql_labelling = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cursor.execute(sql_labelling)
+            labelling= cursor.fetchall()[0][0]
+            labelling = labelling.split(': ')[1].split('/')
+
+            hyperparams = {}
+            hyperparams['StationarityTest'] = preprocessing[0].split('[')[1]
+            hyperparams['DiffTest'] = preprocessing[1]
+            hyperparams['ReplaceNan'] = preprocessing[2]
+            hyperparams['MinTradeDay'] = preprocessing[3]
+            hyperparams['Method'] = preprocessing[4]
+            hyperparams['MaxLag'] = preprocessing[5]
+            hyperparams['FeatureImpotance']  = preprocessing[6].split(']')[0]
+
+            hyperparams['FIThreshold'] = labelling[0].split('[')[1]
+            hyperparams['TopFeature'] = labelling[1]
+            hyperparams['ScoreConvert'] = labelling[2]
+            hyperparams['ScoreThreshold'] = labelling[3]
+            hyperparams['AbnormThreshold'] = labelling[4].split(']')[0]
+
+            hyperparams['DatasetType'] = taskdata[0]
+            hyperparams['MaCK'] = taskdata[1]
+            hyperparams['FromDate'] = taskdata[2]
+            hyperparams['ToDate'] = taskdata[3]
+
+            results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
+            results = results.get()
+            cur.execute(sql_insert)
+            conn.commit()
+        else:
+            sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+            cur.execute(sql_findref)
+            ref_data = cur.fetchall()[0][0]
+            task_id = init_taskid()
+            sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
+            cur.execute(sql_insert)
+            conn.commit()
+        return results
     except:
         # Re-raise the exception.
         raise        
 
+def get_model_result(raw_results):
+    results = []
+    
+    return results
+
+def trace_log_modelling(p_reftask):
+    cur, conn = connect_data()
+    sql_preprocess = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftask)
+    cur.execute(sql_preprocess)
+    ref_pre = cur.fetchall()[0][0]
+    result = "PREPROCESSINGID/LABELLINGID/MASTERID:{}/{}/".format(ref_pre, p_reftask)
+    return result
 
 #Feedback task result
 def task_result_feedback(p_taskid, p_status, p_logontent):
@@ -519,14 +720,31 @@ def task_result_feedback(p_taskid, p_status, p_logontent):
         raise        
 
 #Get dataset
-def task_para_get(v_para_typ):    
+def task_para_get(v_para_typ):
     try:
+        # need_debug to get table of datasets
+        ###################################
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('GET_DATASET_GENERIC', [v_para_typ, outcursor])
-        results = outcursor.getvalue()
-        return results
+        sql_query = "SELECT VERSION, PARACONTENT, TASKID, REFID, TASKSTART FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_para_typ)
+        cursor.execute(sql_query)
+        
+        results = cursor.fetchall()
+        if v_para_typ == 'TASKDATA':
+            for res_ind in range(len(results)) :
+                ref, cont, _, __, ___ = results[res_ind]
+                cont = cont.split(':')[1].split('-')
+                cont.append(ref)
+                cont.append(res_ind+1)
+                results[res_ind] = cont
+            return results
+        elif v_para_typ == 'PREPROCESSING':
+            pass
+        elif v_para_typ == 'LABELLING':
+            pass
+        elif v_para_typ == 'MODELLING':
+            pass
+        ###################################
     except:
         # Re-raise the exception.
         raise        
@@ -562,9 +780,13 @@ def task_log_activity(v_taskcd, v_refversion, v_reftaskid):
     try:
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('GET_TASK_INFO', [v_taskcd, v_refversion, v_reftaskid, outcursor])
-        results = outcursor.getvalue()
+        if v_taskcd == 'TASKDATA':
+            sql_query = "SELECT VERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}' \
+                                ".format(v_taskcd)
+        else:
+            sql_query = "SELECT * FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_taskcd)
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
         return results    
     except:
         # Re-raise the exception.
@@ -575,9 +797,9 @@ def task_choosing(v_taskcd):
     try:
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        outcursor = cursor.var(cx_Oracle.CURSOR)
-        cursor.callproc('SP_ENGINE_CHOOSE_TASK', [v_taskcd, outcursor])
-        results = outcursor.getvalue()
+        sql = "SELECT TASKID, REFVERSION, PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_taskcd)
+        cursor.execute(sql)
+        results = cursor.fetchall()
         return results   
     except:
         # Re-raise the exception.

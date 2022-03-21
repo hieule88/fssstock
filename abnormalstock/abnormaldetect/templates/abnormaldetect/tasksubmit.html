@@ -10,10 +10,7 @@
         <div class="form-row">
             <div class="form-group col-md-8 mb-0">
                 {{ form.Data|as_crispy_field }}
-            </div>            
-            <div class="form-group col-md-2 mb-0">
-                {{ form.REFTTR|as_crispy_field }}
-            </div>                
+            </div>                          
         </div>
          <input type="submit" name="para_submit" value="Submit">
         <br>
@@ -22,11 +19,24 @@
             {% for message in group_cases %}
                 {{ message.0 }}:<b><i>{{ message.1 | floatformat:0 }}</i> </b>
             {% endfor %}
-        {% endif %}  
+        {% endif %}
+        <br>
+        {% if message_list_result %}
+            <a href="javascript:export_data()">Export table data</a>
+            {% include "abnormaldetect/userprediction_A.html" %}
+            <script>
+                $('#sortTable').DataTable();
+            </script>
+            <a href="javascript:export_data()">Export table data</a>
+        {% else %}
+            <h4>Submit to see results</h4>
+        {% endif %}
         <br>
         {% if message_list %}
-            <h3>Task log: Auto run modelling</h3>
+        <h3>Task log: Auto run modelling</h3>
+            {% with message_list_ref=message_list %}
             {% include "abnormaldetect/tasklog_basic.html" %}
+            {% endwith %}
             <script>
                 $('#sortTable').DataTable();
             </script>  

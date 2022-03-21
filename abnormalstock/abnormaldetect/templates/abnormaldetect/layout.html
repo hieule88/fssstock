@@ -55,7 +55,6 @@
     <a href="{% url 'taskdata' %}" class="navbar-item">Dataset</a>
     <a href="{% url 'taskpreprocessing' %}" class="navbar-item">Preprocessing</a>
     <a href="{% url 'tasklabelling' %}" class="navbar-item">Labelling</a>
-    <a href="{% url 'taskclassification' %}" class="navbar-item">Classification</a>
     <a href="{% url 'taskmodelling' %}" class="navbar-item">Modelling</a>
     <a href="{% url 'tasksubmit' %}" class="navbar-item">Auto Run</a> 
     <a href="{% url 'taskquery' %}" class="navbar-item">Query</a> 
@@ -88,9 +87,9 @@
     <footer>
         <p>
             {% if user.is_authenticated %}
-                ©FSS 2021 Welcome {{ user.username }}!
+                ©FSS 2022 Welcome {{ user.username }}!
             {% else %}
-                ©FSS 2021 You are not logged in
+                ©FSS 2022 You are not logged in
             {% endif %}
         </p> 
     </footer>

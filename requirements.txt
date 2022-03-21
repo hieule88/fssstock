@@ -6,3 +6,10 @@ statsmodels
 matplotlib
 tqdm
 finta
+django
+django-sitetree
+django-crispy_forms
+cx_oracle
+scikit-learn
+celery
+seaborn

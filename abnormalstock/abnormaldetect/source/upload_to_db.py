@@ -1,6 +1,8 @@
 from abnormaldetect.source.backend import *
 # from backend import *
 import pandas as pd
+import cx_Oracle
+from abnormalstock import settings
 class Parser:
     def __init__(self, proc, table, p_ticker, p_start_date, p_end_date):
         self.table = table
@@ -38,15 +40,12 @@ class Parser:
             return pd.DataFrame(self.dataframe['TICKER'].unique())
         
         return self.dataframe
-import cx_Oracle
 
 def connect_data(): 
-    dsn_tns = cx_Oracle.makedsn(BACKEND_IP_HOST_DB, BACKEND_PORT_DB, service_name=BACKEND_SERVICE_NAME_USE) # if needed, place an 'r' before any parameter in order to address special characters such as '\'.
-    # need input user because ....
-    conn = cx_Oracle.connect(user=r'RISK_USER', password=BACKEND_PASS_DB, dsn=dsn_tns) # if needed, place an 'r' before any parameter in order to address special characters such as '\'. For example, if your user name contains '\', you'll need to place 'r' before the user name: user=r'User Name'
-    c = conn.cursor()
+    con = cx_Oracle.connect(settings.BACKEND_DB)
+    c = con.cursor()
     #conn.commit()
-    return c,conn
+    return c,con
 
 class Updator():
     def __init__(self, database, table):
@@ -59,29 +58,29 @@ class Updator():
     def remove(self):
         pass
     
-if __name__ == '__main__':
-    cur, conn = connect_data()
-    #insert hyperparams
-    list_params = 'MACK'
-    input_start_date='01/01/2019'
-    input_end_date='01/01/2021'
-    input_ticker = '%'
-    tickers = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', input_ticker, input_start_date, input_end_date).dataframe['TICKER']
+# if __name__ == '__main__':
+#     cur, conn = connect_data()
+#     #insert hyperparams
+#     list_params = 'MACK'
+#     input_start_date='01/01/2019'
+#     input_end_date='01/01/2021'
+#     input_ticker = '%'
+#     tickers = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', input_ticker, input_start_date, input_end_date).dataframe['TICKER']
 
-    val = tickers.tolist()
-    val.append('ALL')
+#     val = tickers.tolist()
+#     val.append('ALL')
 
-    content = list_params
-    en_content = 'DEF_PREPROCESSING'
-    order = 1
+#     content = list_params
+#     en_content = 'DEF_PREPROCESSING'
+#     order = 1
 
-    for i in range(len(val)):
-        # SQL = "INSERT INTO ALLCODE2 (CDUSER, CDTYPE, CDNAME, CDVAL, CDCONTENT, EN_CDCONTENT, LSTODR) VALUES ('H','SP', 'MINTRADEDAY','60' , 'MINTRADEDAY', 'DEF_PREPROCESSING', 1)"
-        sql_insert = "INSERT INTO ALLCODE2 (CDUSER, CDTYPE, CDNAME, CDVAL, CDCONTENT, EN_CDCONTENT, LSTODR) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', {}) "\
-                    .format('H','SP',list_params ,val[i] , content, en_content, i+2)
+#     for i in range(len(val)):
+#         # SQL = "INSERT INTO ALLCODE2 (CDUSER, CDTYPE, CDNAME, CDVAL, CDCONTENT, EN_CDCONTENT, LSTODR) VALUES ('H','SP', 'MINTRADEDAY','60' , 'MINTRADEDAY', 'DEF_PREPROCESSING', 1)"
+#         sql_insert = "INSERT INTO ALLCODE2 (CDUSER, CDTYPE, CDNAME, CDVAL, CDCONTENT, EN_CDCONTENT, LSTODR) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', {}) "\
+#                     .format('H','SP',list_params ,val[i] , content, en_content, i+2)
 
-        c0 = cur.execute(sql_insert)
-    conn.commit()
-    print('DONE')
+#         c0 = cur.execute(sql_insert)
+#     conn.commit()
+#     print('DONE')
 
 
