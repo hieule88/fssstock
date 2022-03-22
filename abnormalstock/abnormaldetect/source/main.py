@@ -114,6 +114,9 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
     ref = ref_id.split('\\')[0]
     cursor, con = connect_data()
     count_error =0
+
+    success =0
+
     for row in tqdm(tickers.iterrows(), desc= "Model Solving: ", total= len(tickers.index)):
     # Load ticker infor
         try:
@@ -147,6 +150,10 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             # print(set(ticker_feature.columns) - set(column_to_model))
             p_status = 'S'
             p_logontent = 'Success' + ' at Ticker: ' + p_ticker
+
+            success = success+1
+            if success == 3:
+                return 0
 
         except Exception as e:
             count_error = count_error+1

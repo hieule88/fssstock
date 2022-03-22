@@ -14,9 +14,9 @@
         </div>
          <input type="submit" name="para_submit" value="Submit">
         <br>
-        {% if message_list.1 %}
+        {% if results %}
             <a href="javascript:export_data()">Export table data</a>
-            {% with message_list_result=message_list.1 %}
+            {% with message_list_result=results %}
             {% include "abnormaldetect/userprediction_A.html" %}
             {% endwith %}
             <script>
@@ -64,9 +64,9 @@
                 </tr>
             </tbody>
         </table>
-        {% if message_list.0 %}
+        {% if message_list %}
             <h3>Task log: Modelling</h3>
-            {% with message_list_ref=message_list.0 %}  
+            {% with message_list_ref=message_list %}  
             {% include "abnormaldetect/tasklog_basic.html" %}
             {% endwith %}
         {% else %}

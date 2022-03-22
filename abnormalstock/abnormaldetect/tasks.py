@@ -85,18 +85,6 @@ def runtask(p_taskid, ref_id, hyperparams):
         return results
     except Exception as e:
         raise
-        # ver = datetime.now().strftime("%D:%H:%M:%S") + '-' + str(time.time())
-        # p_status='E'
-        # p_logontent=str(e)
-        # ref = ref_id.split('\\')[0]
-        # sql_insert = "INSERT INTO RES_LOG_CELERY (AUTOID, ID_MODELLING, REFVERSION, VERSION, STATUS, LOGCONTENT) VALUES \
-        #                             ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
-        #                             .format('MODELLING', p_taskid, ref, ver, p_status, p_logontent)
-        # con = cx_Oracle.connect(settings.BACKEND_DB)
-        # cursor = con.cursor()
-        # cursor.execute(sql_insert)
-        # con.commit()
-        # cmdbackend.task_result_feedback(p_taskid, p_status, p_logontent)
 
 @shared_task
 def taskcmdcelery(cmdtype, cmdcontent):

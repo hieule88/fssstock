@@ -1,3 +1,4 @@
+from unittest import result
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.utils.timezone import datetime
@@ -791,11 +792,11 @@ def taskmodelling(request):
                     # cmdbackend.user_prediction(taskid, reftaskid, 1000)
         else:
             form = ModellingForm()   
-        queryset = []
-        queryset.append(cmdbackend.task_log_activity(taskcd,'',0))
-        queryset.append(results)
+        queryset = cmdbackend.task_log_activity(taskcd,'',0)
+
         context = {
             "message_list": queryset,
+            "results": results,
             "form": form
         }    
     except Exception as e:

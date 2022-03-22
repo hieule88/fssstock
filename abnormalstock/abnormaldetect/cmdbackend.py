@@ -611,6 +611,28 @@ def task_data_submit(p_datatype, p_mack, p_fromdate, p_todate):
         # Re-raise the exception.
         raise        
 
+def get_unique_mack():
+    return
+
+def get_result_model(taskid):
+    cursor, conn = connect_data()
+    # sql_mack = "SELECT DISTINCT MACK FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(taskid)
+    # cursor.execute(sql_mack)
+    # mack = cursor.fetchall()[0]
+
+    results = []
+    sql_res_predict = "SELECT MACK, CDDATE, STATUS, RESIDUALS, SCORE FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(taskid)
+    cursor.execute(sql_res_predict)
+    data_predict = cursor.fetchall()
+    results.append(data_predict)
+    
+    sql_res_impfeatures = 'SELECT MACK, VARIABLE, SCORE FROM RES_VARIABLE_SCORE_2 WHERE ID_MODELLING ={}'.format(taskid)
+    cursor.execute(sql_res_impfeatures)
+    data_impfeatures = cursor.fetchall()
+    results.append(data_impfeatures)
+
+    return results
+
 def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_extversion):
     try:
         strt_time = time.ctime()
@@ -630,28 +652,29 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
                                     ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
                                     .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
-            con = cx_Oracle.connect(settings.BACKEND_DB)
-            cursor = con.cursor()
+            cur.execute(sql_insert)
+            conn.commit()
+
             sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-            cursor.execute(sql_refversion)
-            ref = cursor.fetchall()[0][0]         
+            cur.execute(sql_refversion)
+            ref = cur.fetchall()[0][0]         
             id_preprocessing = p_paracontent.split(':')[1].split('/')[0]
 
             ref_id = str(ref) + '\\' + str(p_reftaskid) + '\\' + str(id_preprocessing)
             
             sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
-            cursor.execute(sql_taskdata)
-            taskdata = cursor.fetchall()[0][0]
+            cur.execute(sql_taskdata)
+            taskdata = cur.fetchall()[0][0]
             taskdata = taskdata.split(':')[1].split('-')
 
             sql_preprocessing = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocessing)
-            cursor.execute(sql_preprocessing)
-            preprocessing = cursor.fetchall()[0][0]
+            cur.execute(sql_preprocessing)
+            preprocessing = cur.fetchall()[0][0]
             preprocessing = preprocessing.split(': ')[1].split('/')
 
             sql_labelling = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-            cursor.execute(sql_labelling)
-            labelling= cursor.fetchall()[0][0]
+            cur.execute(sql_labelling)
+            labelling= cur.fetchall()[0][0]
             labelling = labelling.split(': ')[1].split('/')
 
             hyperparams = {}
@@ -674,12 +697,10 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['FromDate'] = taskdata[2]
             hyperparams['ToDate'] = taskdata[3]
 
-            results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
-            results = results.get()
-            print(results)
-            quit()
-            cur.execute(sql_insert)
-            conn.commit()
+            tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
+            time.sleep(15)
+            results = get_result_model(task_id)
+
         else:
             sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
             cur.execute(sql_findref)
