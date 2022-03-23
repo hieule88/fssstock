@@ -5,6 +5,7 @@
 {% load crispy_forms_tags %}
 {% block content %}
     {% if user.is_authenticated %}
+    <h1>MODELLING</h1>
     <form action = "" method = "POST">
         <!--{% csrf_token %} -->
         <div class="form-row">
@@ -28,24 +29,34 @@
         {% endif %}
         <br>
         <h3>Result Explanation:</h3>
-        <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+        <table class="table table-striped table-bordered" cellspacing="0" width="100%">
             <thead style="position: sticky;top: 0" class="thead-dark">
             <tr>
               <th class="header" scope="col">NAME</th>
               <th class="header" scope="col">MEANING</th>                      
               <th class="header" scope="col">NOTE</th>
-          </tr>
+            </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Số Ngày Nguy Cơ</td>
-                    <td>Số ngày được Model phát hiện là bất thường</td>
+                    <td>Model Name</td>
+                    <td>Tên model được sử dụng</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td>Các Ngày Nguy Cơ</td>
-                    <td>Các ngày được Model phát hiện là bất thường</td>
+                    <td>MaCK</td>
+                    <td>Mã chứng khoán</td>
                     <td></td>
+                </tr>
+                <tr>
+                    <td>Date</td>
+                    <td>Ngày phát hiện bất thường</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td>Trạng thái làm giá</td>
+                    <td>Y: Có hiện tượng làm giá, N: Có nguy cơ xả hàng</td>
                 </tr>
                 <tr>
                     <td>Residual</td>
@@ -53,13 +64,8 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td>Điểm số các ngày nguy cơ</td>
-                    <td>Đánh giá điểm bất thường của các ngày nguy cơ (theo ngưỡng và phân vị được chọn từ phần Labelling)</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Các biến quan trọng</td>
-                    <td>Các biến ảnh hưởng lớn đến dự đoán bất thường của Model</td>
+                    <td>Score</td>
+                    <td>Đánh giá mức độ bất thường</td>
                     <td></td>
                 </tr>
             </tbody>

@@ -772,6 +772,31 @@ def task_para_get(v_para_typ):
         # Re-raise the exception.
         raise        
 
+#Get id_modelling in res_log_celery
+def get_id_modelling():
+    try:
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+        sql = "SELECT DISTINCT ID_MODELLING FROM RES_LOG_CELERY"
+        cursor.execute(sql)
+        result_sql = cursor.fetchall()
+        task_ids = [res[0] for res in result_sql]
+        return task_ids
+    except:
+        raise
+
+#Get log celery data
+def get_log_celery(taskid):
+    try:
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+        sql = "SELECT * FROM RES_LOG_CELERY WHERE ID_MODELLING ={}".format(taskid)
+        cursor.execute(sql)
+        log_data = cursor.fetchall()
+        return log_data
+    except:
+        raise
+
 #Get list of parameter for dropdown list
 def task_para_list(v_para_typ):    
     try:

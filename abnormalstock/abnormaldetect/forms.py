@@ -98,11 +98,11 @@ class QueryForm(forms.Form):
     MaxRows = forms.IntegerField(label = "Max rows", required = False, initial=1000)
 
 class ETLForm(forms.Form):
-    set_chitieu = cmdbackend.task_para_list('CHITIEU')
-    ref_chitieu = [(row[0], row[1]) 
-                for row in set_chitieu]    
-    Category = forms.ChoiceField(choices  = ref_chitieu)
-    Year = forms.IntegerField(label = "Year", help_text="Zero means all", required = False, initial=2016)
+    # get unique id_modelling
+    set_taskid = cmdbackend.get_id_modelling()
+    ref_taskid = [(id, id) 
+                for id in set_taskid]    
+    ID_MODELLING = forms.ChoiceField(choices  = ref_taskid, label="ID_MODELLING")
 
 class CommandForm(forms.Form):
     cmdType = forms.ChoiceField(label = "Type", choices  = settings.COMMAND_CHOICES)

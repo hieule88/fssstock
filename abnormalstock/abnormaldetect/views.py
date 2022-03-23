@@ -606,23 +606,18 @@ def frauditem_full(request, reflinkid=''):
 def taskETL(request):
     context = {'vendor': 'FSS'}
     try:
-        refCategory =''
-        refYear = 'refYear'
         if request.method == "POST":
             form = ETLForm(request.POST)
             if form.is_valid():
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
-                    refCategory = cd['Category']
-                    refYear = cd['Year']
-                    queryset =  cmdbackend.task_ETL_execute(refCategory, refYear)                
+                    refCategory = cd['ID_MODELLING']
+                    queryset =  cmdbackend.get_log_celery(refCategory)                
         else:
             form = ETLForm()   
             queryset = ''
         context = {
             "message_list": queryset,
-            "category": refCategory,
-            "year": refYear,
             "form": form
         }    
     except Exception as e:

@@ -28,17 +28,37 @@ class VarModel():
     def binning(self, datacolumn):
         max_col = datacolumn.max()
         max_col = float(max_col)
-        bin_len = max_col/3
-        bins = [i*bin_len for i in range(3)]
-        for i in datacolumn.index:
-            if datacolumn.at[i, 'Score'] < bins[0]:
-                datacolumn.at[i, 'Score'] =0
-            elif datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] < bins[1]:
-                datacolumn.at[i, 'Score'] =1
-            elif datacolumn.at[i, 'Score'] >= bins[1] and datacolumn.at[i, 'Score'] < bins[2]:
-                datacolumn.at[i, 'Score'] =2
-            elif datacolumn.at[i, 'Score'] >= bins[2]:
-                datacolumn.at[i, 'Score'] =3
+        if max_col <=0 :
+            pass
+        else: 
+            bin_len_max = max_col/3
+            bins = [i*bin_len_max for i in range(3)]
+            for i in datacolumn.index:
+                if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                    datacolumn.at[i, 'Score'] =0
+                elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                    datacolumn.at[i, 'Score'] =1
+                elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                    datacolumn.at[i, 'Score'] =2
+                elif datacolumn.at[i, 'Score'] > bins[2]:
+                    datacolumn.at[i, 'Score'] =3
+
+        min_col = datacolumn.min()
+        min_col = float(min_col)
+        if min_col >=0 : 
+            return datacolumn
+        else: 
+            bin_len_min = min_col/3
+            bins = [i*bin_len_min for i in range(3)]
+            for i in datacolumn.index:
+                if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                    datacolumn.at[i, 'Score'] =0
+                elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                    datacolumn.at[i, 'Score'] =1
+                elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                    datacolumn.at[i, 'Score'] =2
+                elif datacolumn.at[i, 'Score'] < bins[2]:
+                    datacolumn.at[i, 'Score'] =3
 
         return datacolumn
 
