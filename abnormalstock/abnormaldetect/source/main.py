@@ -1,5 +1,6 @@
 from cProfile import label
 from io import StringIO
+from itertools import count
 from numpy import square
 import pandas as pd
 import os
@@ -32,25 +33,26 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             plt.title('Error Chart')
             plt.legend()
             fig = plt.gcf()
+            fig.set_size_inches(18.5, 10.5)
             fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
-            fig.savefig(fig_url, format='png')
+            fig.savefig(fig_url, format='png', dpi=100)
             plt.close()
             image_val = ''
         elif typeof == 'residual':
             real_close_cost = data[0]
-            estimate_close_cost = data[1]
+            resid = data[1]
             dates = data[2]
-            resid = [real_close_cost[i] - estimate_close_cost[i][0] for i in range(len(real_close_cost))]
+            estimate_close_cost = [real_close_cost[i] + resid[i][0] for i in range(len(real_close_cost))]
             plt.plot(dates, real_close_cost, label = 'Real Close')
             plt.plot(dates, estimate_close_cost, label = 'Estimate Close')
-            plt.plot(dates, resid, label = 'Residual')
             plt.xlabel('Date')
             plt.ylabel('Close')
             plt.title('Close Chart')
             plt.legend()
             fig = plt.gcf()
+            fig.set_size_inches(18.5, 10.5)
             fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
-            fig.savefig(fig_url, format='png')
+            fig.savefig(fig_url, format='png', dpi=100)
             plt.close()
             image_val = ''
         # cur, conn = connect_data()
@@ -158,14 +160,14 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
 
 
-            abnormpredict, top, squared_errors, threshold, tx_date, real_close_cost, predict_close_cost = var_model.process(ticker_infor, p_ticker, )
+            abnormpredict, top, squared_errors, threshold, tx_date, real_close_cost, resid = var_model.process(ticker_infor, p_ticker, )
             numabnormday = abnormpredict.size / 2
             if numabnormday > abnormthresh:
                 listresult = [numabnormday, p_ticker, abnormpredict['TXDATE'].tolist(), abnormpredict['Residual'].tolist(), abnormpredict['Score'].tolist(), top.keys()]
                 abnormdays.append(listresult)
 
                 upload_image([squared_errors.tolist(), threshold, list(tx_date)], 'sq_error', taskid, ref_id, ver, p_ticker)
-                upload_image([real_close_cost.tolist(), predict_close_cost, list(tx_date)], 'residual', taskid, ref_id, ver, p_ticker)
+                upload_image([real_close_cost.tolist(), resid, list(tx_date)], 'residual', taskid, ref_id, ver, p_ticker)
                 upload_to_DB(listresult, typeof= 'predict', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
                 upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
             
@@ -189,5 +191,7 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
                         VALUES (:1,:2,:3,:4,:5)"
         cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
         con.commit()
+        if count_error == 10:
+            return 0
         # break
     return abnormdays
