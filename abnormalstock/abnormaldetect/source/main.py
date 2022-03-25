@@ -19,10 +19,11 @@ from io import StringIO
 random.seed(int(time.time()))
 
 def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
-    try:              
+    try:          
         if typeof == 'sq_error':
             squared_errors = data[0]
             threshold = data[1]
+            threshold = [threshold for i in range(len(squared_errors))]
             dates = data[2]
             plt.plot(dates, squared_errors, label = 'Squared Errors')
             plt.plot(dates, threshold, label = 'Threshold')
@@ -33,13 +34,13 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             fig = plt.gcf()
             fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
             fig.savefig(fig_url, format='png')
-            print('DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+            plt.close()
             image_val = ''
         elif typeof == 'residual':
             real_close_cost = data[0]
-            resid = data[1]
+            estimate_close_cost = data[1]
             dates = data[2]
-            estimate_close_cost = [real_close_cost[i] + resid[i] for i in range(len(real_close_cost))]
+            resid = [real_close_cost[i] - estimate_close_cost[i][0] for i in range(len(real_close_cost))]
             plt.plot(dates, real_close_cost, label = 'Real Close')
             plt.plot(dates, estimate_close_cost, label = 'Estimate Close')
             plt.plot(dates, resid, label = 'Residual')
@@ -50,8 +51,7 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             fig = plt.gcf()
             fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
             fig.savefig(fig_url, format='png')
-            print('DEBUGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
-            
+            plt.close()
             image_val = ''
         # cur, conn = connect_data()
         # ref = ref_id.split('\\')[0]
@@ -158,22 +158,23 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
 
 
-            abnormpredict, top, squared_errors, threshold, real_close_cost = var_model.process(ticker_infor, p_ticker, )
+            abnormpredict, top, squared_errors, threshold, tx_date, real_close_cost, predict_close_cost = var_model.process(ticker_infor, p_ticker, )
             numabnormday = abnormpredict.size / 2
             if numabnormday > abnormthresh:
                 listresult = [numabnormday, p_ticker, abnormpredict['TXDATE'].tolist(), abnormpredict['Residual'].tolist(), abnormpredict['Score'].tolist(), top.keys()]
                 abnormdays.append(listresult)
-                upload_image([squared_errors, threshold, list(abnormpredict['TXDATE'])],'sq_error', taskid, ref_id, p_ticker)
-                upload_image([real_close_cost, list(abnormpredict['Residual']), list(abnormpredict['TXDATE'])],'residual', taskid, ref_id, p_ticker)
+
+                upload_image([squared_errors.tolist(), threshold, list(tx_date)], 'sq_error', taskid, ref_id, ver, p_ticker)
+                upload_image([real_close_cost.tolist(), predict_close_cost, list(tx_date)], 'residual', taskid, ref_id, ver, p_ticker)
                 upload_to_DB(listresult, typeof= 'predict', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
                 upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
-                
             
             # ticker_feature = ticker_feature.drop(columns=['BBM_14_2.0','BBU_14_2.0'])
             # print(set(ticker_feature.columns) - set(column_to_model))
+                p_logontent = 'Success' + ' at Ticker: ' + p_ticker
+            else:
+                p_logontent = 'Success but Numabnormday < Abnormthresh' + ' at Ticker: ' + p_ticker
             p_status = 'S'
-            p_logontent = 'Success' + ' at Ticker: ' + p_ticker
-
             success = success+1
             if success == 3:
                 return 0

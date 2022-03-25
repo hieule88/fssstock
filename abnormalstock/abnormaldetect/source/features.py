@@ -105,9 +105,9 @@ class FeatureTicker():
         TApopular['ichimokuIKS'] = ichimoku['IKS_26']
         TApopular['ichimokuICS'] = ichimoku['ICS_26']
         
-        TApopular['price'] = self.close.div(self.close.max()) if (self.close.max() != 0) else self.close
+        TApopular['price'] = self.close
 
-        TApopular['vol'] = self.volume.div(self.volume.max()) if (self.volume.max() != 0) else self.volume
+        TApopular['vol'] = self.volume
 
         # TApopular['bw_mfi'] = 0
         # TApopular['vrsi'] = 0

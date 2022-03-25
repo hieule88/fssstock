@@ -113,6 +113,33 @@ class VarModel():
         elif self.difftest == 'saiphan':
             # ADD SAI PHAN
             return
+    
+    def retransform(self, element, data):
+        if self.difftest == 'mean':
+            redata = [element]
+            for i in range(1,len(data)):
+                element = element + data[i]
+                redata.append(element)
+            return redata
+        elif self.difftest == 'log':
+            differenced_data = data.apply(np.log)
+            differenced_data = np.log(data)
+            return differenced_data
+        elif self.difftest == 'saiphan':
+            # ADD SAI PHAN
+            return
+
+    def invert_transformation(df_train, df_forecast, second_diff=False):
+        """Revert back the differencing to get the forecast to original scale."""
+        df_fc = df_forecast.copy()
+        columns = df_train.columns
+        for col in columns:        
+            # Roll back 2nd Diff
+            if second_diff:
+                df_fc[str(col)+'_1d'] = (df_train[col].iloc[-1]-df_train[col].iloc[-2]) + df_fc[str(col)+'_2d'].cumsum()
+            # Roll back 1st Diff
+            df_fc[col] = df_train[col].iloc[-1] + df_fc[col].cumsum()
+        return df_fc
 
     def find_anomalies(self, squared_errors):
         threshold = np.mean(squared_errors) + np.std(squared_errors)
@@ -126,6 +153,7 @@ class VarModel():
         non_stationary_cols = [col for col in ticker_feature.columns \
                                 if not self.test_stationarity(ticker_feature, column=col, type= self.stationtest)]
 
+        real_close = ticker_feature['close']
         for col in non_stationary_cols:
             ticker_feature[col] = self.differencing(ticker_feature, col, 1)
 
@@ -143,6 +171,12 @@ class VarModel():
 
                 var = VAR(ticker_feature[column_to_model])
                 var_fitresults = var.fit(selected_lag)
+
+                forecast_input = ticker_feature[column_to_model].values[:-selected_lag]
+                df_forecast = var_fitresults.forecast(y= forecast_input, step=selected_lag)
+                df_forecast = self.invert_transformation(df_train = ticker_feature[column_to_model].values[:-selected_lag], df_forecast = df_forecast)
+                predict_close_cost = df_forecast['close']
+
                 squared_errors = var_fitresults.resid.sum(axis=1)**2
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Score'}, inplace=True)
@@ -152,18 +186,21 @@ class VarModel():
 
                 predictions, threshold = self.find_anomalies(squared_errors) 
 
-                data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:] ], axis=1)
+                data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:]], axis=1)
                 data['Predictions'] = predictions.values
                 data['Residual'] = residual.values
-
+                # print(data.head(50))
                 # print('\nLIST ABNORMAL DAYS OF TICKER:', p_ticker)
                 # print(data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1])
 
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
-                
+
                 # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
-                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], top, squared_errors, threshold, ticker_feature['close'], 
+                return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], \
+                        top, squared_errors, threshold, txdate.iloc[selected_lag:], \
+                        real_close[selected_lag:], predict_close_cost
+
             except Exception as e:
                 e = str(e)
                 e_index = 0
