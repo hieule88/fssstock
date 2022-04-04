@@ -97,9 +97,20 @@ class QueryForm(forms.Form):
     TaxCode = forms.CharField(label = "TaxCode", required = False)
     MaxRows = forms.IntegerField(label = "Max rows", required = False, initial=1000)
 
+class ChartForm(forms.Form):
+    # get unique id_modelling
+    set_taskid = cmdbackend.task_get_distinct('RES_VAR_IMG', 'ID_MODELLING')
+    ref_taskid = [(id, id) 
+                for id in set_taskid]    
+    ID_MODELLING = forms.ChoiceField(choices  = ref_taskid, label="ID_MODELLING")
+    set_mack = cmdbackend.task_get_distinct('RES_VAR_IMG', 'mack')
+    ref_mack = [(id, id) 
+                for id in set_mack]    
+    MACK = forms.ChoiceField(choices  = ref_mack, label="MACK")
+
 class ETLForm(forms.Form):
     # get unique id_modelling
-    set_taskid = cmdbackend.get_id_modelling()
+    set_taskid = cmdbackend.task_get_distinct('RES_LOG_CELERY', 'ID_MODELLING')
     ref_taskid = [(id, id) 
                 for id in set_taskid]    
     ID_MODELLING = forms.ChoiceField(choices  = ref_taskid, label="ID_MODELLING")

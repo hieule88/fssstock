@@ -668,6 +668,30 @@ def taskcommand(request):
         return render(request, "abnormaldetect/taskcommand.html", context)
 
 @csrf_exempt
+def taskchart(request):
+    context = {'vendor': 'FSS'}
+    try:
+        if request.method == "POST":
+            form = ChartForm(request.POST)
+            if form.is_valid():
+                cd = form.cleaned_data
+                if 'para_submit' in request.POST:
+                    taskid = cd['ID_MODELLING']
+                    mack = cd['MACK']
+                    queryset = cmdbackend.get_chart_result(taskid, mack)
+        else:
+            form = ChartForm()
+            queryset = ''
+        context = {
+            "message_list": queryset,
+            "form": form
+        }
+    except Exception as e:
+        just_the_string = traceback.format_exc()
+        messages.add_message(request, messages.ERROR, just_the_string)
+    return render(request, "abnormaldetect/taskchart.html", context)
+
+@csrf_exempt
 def taskquery(request):
     context = {'vendor': 'FSS'}
     try:

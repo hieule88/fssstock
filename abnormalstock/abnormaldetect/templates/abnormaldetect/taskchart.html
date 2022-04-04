@@ -1,0 +1,37 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Chart
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <div class="text-right mx-auto"> 
+        <i>Unit in 1000 VND</i>
+    </div>    
+    <form action = "" method = "POST">
+        <!--{% csrf_token %} -->
+        <div class="form-row">
+            <div class="form-group col-md-2 mb-0">
+                {{ form.ID_MODELLING|as_crispy_field }}
+            </div>              
+            <div class="form-group col-md-2 mb-0">
+                {{ form.MACK|as_crispy_field }}
+            </div>   
+        </div>
+        <input type="submit" name="para_submit" value="Submit">
+        <br>
+        {% if message_list %}
+            {% for message in message_list %}
+                <h3>{{message.0}}</h3>
+                <picture>
+                    <img src="data:image/jpeg;base64,{{ message.1 }}" alt="chart_img" width="100%">
+                </picture>
+                <br>
+            {% endfor %}
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}  
+        </form>
+    {% endif %}  
+
+{% endblock %}

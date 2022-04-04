@@ -772,17 +772,40 @@ def task_para_get(v_para_typ):
         # Re-raise the exception.
         raise        
 
-#Get id_modelling in res_log_celery
-def get_id_modelling():
+#Get distinct value from table
+def task_get_distinct(table, typeof):
     try:
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        sql = "SELECT DISTINCT ID_MODELLING FROM RES_LOG_CELERY"
+        sql = "SELECT DISTINCT {} FROM {}".format(typeof, table)
         cursor.execute(sql)
         result_sql = cursor.fetchall()
         task_ids = [res[0] for res in result_sql]
         return task_ids
     except:
+        raise
+
+#Get chart result from res_var_img
+def get_chart_result(taskid, mack):
+    try:
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+        sql = "SELECT TYPE, IMAGE_VAL FROM RES_VAR_IMG WHERE ID_MODELLING = {} AND MACK = '{}'".format(taskid, mack)
+        cursor.execute(sql)
+        result_sql = cursor.fetchall()
+        img_pair = []
+        for res in result_sql:
+            tmp_pair = []
+            tmp_pair.append(res[0])
+            buf_img = pickle.loads(res[1].read())
+            buf_img = base64.b64encode(buf_img.read()).decode('utf-8')
+            # buf_img = res[1].read()
+            # buf_img = pickle.loads(buf_img)
+            # buf_img = base64.b64encode(buf_img).decode('utf-8')
+            tmp_pair.append(buf_img)
+            img_pair.append(tmp_pair)
+        return img_pair
+    except: 
         raise
 
 #Get log celery data

@@ -15,7 +15,8 @@ import random
 from datetime import datetime
 import time
 import matplotlib.pyplot as plt 
-from io import StringIO
+import io
+import pickle
 
 random.seed(int(time.time()))
 
@@ -26,7 +27,7 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             threshold = data[1]
             threshold = [threshold for i in range(len(squared_errors))]
             dates = data[2]
-            plt.plot(dates, squared_errors, label = 'Squared Errors')
+            plt.plot(dates, squared_errors, '--', label = 'Squared Errors',)
             plt.plot(dates, threshold, label = 'Threshold')
             plt.xlabel('Date')
             plt.ylabel('Error')
@@ -34,10 +35,11 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             plt.legend()
             fig = plt.gcf()
             fig.set_size_inches(18.5, 10.5)
-            fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
-            fig.savefig(fig_url, format='png', dpi=100)
+            buf = io.BytesIO()
+            fig.savefig(buf, format='jpeg', dpi= 100)
+            buf.seek(0)
             plt.close()
-            image_val = ''
+
         elif typeof == 'residual':
             real_close_cost = data[0]
             resid = data[1]
@@ -51,19 +53,20 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             plt.legend()
             fig = plt.gcf()
             fig.set_size_inches(18.5, 10.5)
-            fig_url = 'C:/Users/Admin/Desktop/temp/' + typeof + '_' + str(taskid) + '_' + str(p_ticker) +'.png'
-            fig.savefig(fig_url, format='png', dpi=100)
+            buf = io.BytesIO()
+            fig.savefig(buf, format='jpeg', dpi= 100)
+            buf.seek(0)
             plt.close()
-            image_val = ''
-        # cur, conn = connect_data()
-        # ref = ref_id.split('\\')[0]
-        # sql_insert = "INSERT INTO RES_VAR_IMG (REFVERSION, VERSION, ID_MODELLING, TYPE, IMAGE_VAL) \
-        #             VALUES ({}, '{}', '{}', '{}', {}) "\
-        #             .format(ref, ver, taskid, typeof, image_val)
-        # cur.execute(sql_insert)
-        # conn.commit()
+        cur, conn = connect_data()
+        ref = ref_id.split('\\')[0]
+
+        sql_insert = "INSERT INTO RES_VAR_IMG (REFVERSION, VERSION, ID_MODELLING, TYPE, IMAGE_VAL, MACK) \
+                    VALUES (:1,:2,:3,:4,:5,:6) "
+        cur.execute(sql_insert, [ref, ver, taskid, typeof, pickle.dumps(buf), p_ticker])
+        conn.commit()
+        print('UPLOAD IMAGE TO DB SUCCESS')
     except:
-        # print('UPLOAD IMAGE TO DB FAIL')
+        print('UPLOAD IMAGE TO DB FAIL')
         raise
 def upload_to_DB(data, typeof, taskid, ref_id , model, ver):
     try:
@@ -179,6 +182,7 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             p_status = 'S'
             success = success+1
             if success == 3:
+                print('Successed !!!')
                 return 0
 
         except Exception as e:
@@ -192,6 +196,7 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
         cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
         con.commit()
         if count_error == 10:
+            print('Failed !!!')
             return 0
         # break
     return abnormdays

@@ -11,9 +11,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class VarModel():
-    def __init__(self, maxlag=5, difftest= 'mean', stationtest= 'adf', \
-                featureimportance= 'corr', topfeature= 12, fithresh= 0.1, \
-                scoreconvert= 'binning', scorethresh= 0.1):
+    def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
+                featureimportance= 'corr', topfeature= 12, fithresh= 0.0, \
+                scoreconvert= '3-binning', scorethresh= 0.0):
         self.count_error = 0
         self.maxlag = maxlag
         self.difftest = difftest
@@ -28,37 +28,78 @@ class VarModel():
     def binning(self, datacolumn):
         max_col = datacolumn.max()
         max_col = float(max_col)
-        if max_col <=0 :
-            pass
-        else: 
-            bin_len_max = max_col/3
-            bins = [i*bin_len_max for i in range(3)]
-            for i in datacolumn.index:
-                if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
-                    datacolumn.at[i, 'Score'] =0
-                elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
-                    datacolumn.at[i, 'Score'] =1
-                elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
-                    datacolumn.at[i, 'Score'] =2
-                elif datacolumn.at[i, 'Score'] > bins[2]:
-                    datacolumn.at[i, 'Score'] =3
-
         min_col = datacolumn.min()
         min_col = float(min_col)
-        if min_col >=0 : 
-            return datacolumn
-        else: 
-            bin_len_min = min_col/3
-            bins = [i*bin_len_min for i in range(3)]
-            for i in datacolumn.index:
-                if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+
+        if self.scoreconvert == '3-binning':
+            if max_col <= self.scorethresh :
+                for i in datacolumn.index:
                     datacolumn.at[i, 'Score'] =0
-                elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
-                    datacolumn.at[i, 'Score'] =1
-                elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
-                    datacolumn.at[i, 'Score'] =2
-                elif datacolumn.at[i, 'Score'] < bins[2]:
-                    datacolumn.at[i, 'Score'] =3
+            else: 
+                bin_len_max = (max_col - self.scorethresh )/3
+                bins = [i*bin_len_max for i in range(3)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] > bins[2]:
+                        datacolumn.at[i, 'Score'] =3
+
+            if min_col >= self.scorethresh*(-1.0) : 
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_min = (min_col - self.scorethresh*(-1.0))/3
+                bins = [i*bin_len_min for i in range(3)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] < bins[2]:
+                        datacolumn.at[i, 'Score'] =3
+
+        elif self.scoreconvert == '4-binning':
+            if max_col <= self.scorethresh :
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_max = (max_col - self.scorethresh )/4
+                bins = [i*bin_len_max for i in range(4)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] > bins[2] and datacolumn.at[i, 'Score'] <= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] > bins[3]:
+                        datacolumn.at[i, 'Score'] =4
+
+            if min_col >= self.scorethresh*(-1.0) : 
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_min = (min_col - self.scorethresh*(-1.0))/4
+                bins = [i*bin_len_min for i in range(4)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] < bins[2] and datacolumn.at[i, 'Score'] >= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] < bins[3]:
+                        datacolumn.at[i, 'Score'] =4
 
         return datacolumn
 
@@ -102,17 +143,28 @@ class VarModel():
         return test_result
 
     def differencing(self, data, column, order):
-        if self.difftest == 'mean':
+        if self.difftest == 'diffty':
             differenced_data = data[column].diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
             return differenced_data
         elif self.difftest == 'log':
             differenced_data = data[column].apply(np.log)
-            differenced_data = np.log(data[column])
+            differenced_data.interpolate(method='ffill', order=2, inplace=True)
             return differenced_data
-        elif self.difftest == 'saiphan':
-            # ADD SAI PHAN
-            return
+        elif self.difftest == 'cbrt':
+            differenced_data = data[column].apply(np.cbrt)
+            differenced_data.interpolate(method='ffill', order=2, inplace=True)
+            return differenced_data
+        elif self.difftest == 'log&diffty':
+            differenced_data = data[column].apply(np.log)
+            differenced_data = differenced_data.diff(order)
+            differenced_data.fillna(differenced_data.mean(), inplace=True)
+            return differenced_data  
+        elif self.difftest == 'cbrt&diffty':
+            differenced_data = data[column].apply(np.cbrt)
+            differenced_data = differenced_data.diff(order)
+            differenced_data.fillna(differenced_data.mean(), inplace=True)
+            return differenced_data            
     
     def retransform(self, element, data):
         if self.difftest == 'mean':
@@ -203,10 +255,9 @@ class VarModel():
     def feature_importance(self, ticker_feature, column_to_model, selected_lag):
         if self.featureimportance == 'corr' :
             corr = pd.DataFrame(ticker_feature[column_to_model].iloc[selected_lag:, :].corr(method='pearson')['close'])
-
             coef_dict = dict(zip(corr.index ,corr.values))
             coef_dict = dict(sorted(coef_dict.items(), key= lambda item: item[1], reverse=True)[1 : self.topfeature + 1])
-            
             return coef_dict
+            
         elif self.featureimportance == 'varcorr':
             print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')

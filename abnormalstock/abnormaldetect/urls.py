@@ -48,6 +48,7 @@ urlpatterns = [
     path("tasksubmit/", views.tasksubmit, name="tasksubmit"),
     path("taskcommand/", views.taskcommand, name="taskcommand"),
     path("taskETL/", views.taskETL, name="taskETL"),
+    path("taskchart/", views.taskchart, name="taskchart"),
     path("tasklog/", views.tasklog, name="tasklog"),
     path("taskquery/", views.taskquery, name="taskquery"),
     path("frauditem/<slug:reflinkid>/", views.frauditem, name="frauditem"),
