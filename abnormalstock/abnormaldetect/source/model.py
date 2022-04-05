@@ -1,4 +1,5 @@
 from os import replace
+from random import Random
 import pandas as pd
 from pandas.core.algorithms import diff
 from statsmodels.tsa.stattools import adfuller, kpss, zivot_andrews
@@ -9,6 +10,84 @@ from statsmodels.tsa.api import VAR
 
 import warnings
 warnings.filterwarnings("ignore")
+
+def binning(scoreconvert, scorethresh, datacolumn):
+        max_col = datacolumn.max()
+        max_col = float(max_col)
+        min_col = datacolumn.min()
+        min_col = float(min_col)
+
+        if scoreconvert == '3-binning':
+            if max_col <= scorethresh :
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_max = (max_col - scorethresh )/3
+                bins = [i*bin_len_max for i in range(3)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] > bins[2]:
+                        datacolumn.at[i, 'Score'] =3
+
+            if min_col >= scorethresh*(-1.0) : 
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_min = (min_col - scorethresh*(-1.0))/3
+                bins = [i*bin_len_min for i in range(3)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] < bins[2]:
+                        datacolumn.at[i, 'Score'] =3
+
+        elif scoreconvert == '4-binning':
+            if max_col <= scorethresh :
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_max = (max_col - scorethresh )/4
+                bins = [i*bin_len_max for i in range(4)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] > bins[2] and datacolumn.at[i, 'Score'] <= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] > bins[3]:
+                        datacolumn.at[i, 'Score'] =4
+
+            if min_col >= scorethresh*(-1.0) : 
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_min = (min_col - scorethresh*(-1.0))/4
+                bins = [i*bin_len_min for i in range(4)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] < bins[2] and datacolumn.at[i, 'Score'] >= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] < bins[3]:
+                        datacolumn.at[i, 'Score'] =4
+
+        return datacolumn
 
 class VarModel():
     def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
@@ -24,84 +103,6 @@ class VarModel():
         self.fithresh = fithresh
         self.scoreconvert = scoreconvert
         self.scorethresh = scorethresh
-
-    def binning(self, datacolumn):
-        max_col = datacolumn.max()
-        max_col = float(max_col)
-        min_col = datacolumn.min()
-        min_col = float(min_col)
-
-        if self.scoreconvert == '3-binning':
-            if max_col <= self.scorethresh :
-                for i in datacolumn.index:
-                    datacolumn.at[i, 'Score'] =0
-            else: 
-                bin_len_max = (max_col - self.scorethresh )/3
-                bins = [i*bin_len_max for i in range(3)]
-                for i in datacolumn.index:
-                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
-                        datacolumn.at[i, 'Score'] =0
-                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
-                        datacolumn.at[i, 'Score'] =1
-                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
-                        datacolumn.at[i, 'Score'] =2
-                    elif datacolumn.at[i, 'Score'] > bins[2]:
-                        datacolumn.at[i, 'Score'] =3
-
-            if min_col >= self.scorethresh*(-1.0) : 
-                for i in datacolumn.index:
-                    datacolumn.at[i, 'Score'] =0
-            else: 
-                bin_len_min = (min_col - self.scorethresh*(-1.0))/3
-                bins = [i*bin_len_min for i in range(3)]
-                for i in datacolumn.index:
-                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
-                        datacolumn.at[i, 'Score'] =0
-                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
-                        datacolumn.at[i, 'Score'] =1
-                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
-                        datacolumn.at[i, 'Score'] =2
-                    elif datacolumn.at[i, 'Score'] < bins[2]:
-                        datacolumn.at[i, 'Score'] =3
-
-        elif self.scoreconvert == '4-binning':
-            if max_col <= self.scorethresh :
-                for i in datacolumn.index:
-                    datacolumn.at[i, 'Score'] =0
-            else: 
-                bin_len_max = (max_col - self.scorethresh )/4
-                bins = [i*bin_len_max for i in range(4)]
-                for i in datacolumn.index:
-                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
-                        datacolumn.at[i, 'Score'] =0
-                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
-                        datacolumn.at[i, 'Score'] =1
-                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
-                        datacolumn.at[i, 'Score'] =2
-                    elif datacolumn.at[i, 'Score'] > bins[2] and datacolumn.at[i, 'Score'] <= bins[3]:
-                        datacolumn.at[i, 'Score'] =3
-                    elif datacolumn.at[i, 'Score'] > bins[3]:
-                        datacolumn.at[i, 'Score'] =4
-
-            if min_col >= self.scorethresh*(-1.0) : 
-                for i in datacolumn.index:
-                    datacolumn.at[i, 'Score'] =0
-            else: 
-                bin_len_min = (min_col - self.scorethresh*(-1.0))/4
-                bins = [i*bin_len_min for i in range(4)]
-                for i in datacolumn.index:
-                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
-                        datacolumn.at[i, 'Score'] =0
-                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
-                        datacolumn.at[i, 'Score'] =1
-                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
-                        datacolumn.at[i, 'Score'] =2
-                    elif datacolumn.at[i, 'Score'] < bins[2] and datacolumn.at[i, 'Score'] >= bins[3]:
-                        datacolumn.at[i, 'Score'] =3
-                    elif datacolumn.at[i, 'Score'] < bins[3]:
-                        datacolumn.at[i, 'Score'] =4
-
-        return datacolumn
 
     def test_stationarity(self, ts_data, column='', signif=0.05, series=False, type = 'adf'):
         if type == 'adf':
@@ -215,8 +216,8 @@ class VarModel():
                 price_errors = pd.DataFrame(var_fitresults.resid['close'])
                 price_errors.rename(columns={'close': 'Score'}, inplace=True)
                 residual = price_errors.copy(deep= True)
-
-                price_errors = self.binning(price_errors)
+                
+                price_errors = binning(self.scoreconvert, self.scorethresh, price_errors)
 
                 predictions, threshold = self.find_anomalies(squared_errors) 
 
@@ -261,3 +262,50 @@ class VarModel():
             
         elif self.featureimportance == 'varcorr':
             print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')
+
+from linearmodels.panel import RandomEffects
+class RemModel():
+    def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
+                featureimportance= 'corr', topfeature= 12, fithresh= 0.0, \
+                scoreconvert= '3-binning', scorethresh= 0.0):
+        self.count_error = 0
+        self.maxlag = maxlag
+        self.difftest = difftest
+        self.stationtest = stationtest
+        self.featureimportance = featureimportance
+        self.topfeature = topfeature
+
+        self.fithresh = fithresh
+        self.scoreconvert = scoreconvert
+        self.scorethresh = scorethresh
+    
+    def process(self, data, dependent, exog):
+        data.set_index("TXDATE")
+        model = RandomEffects(data[dependent], data[exog])
+        res = model.fit()
+          
+from linearmodels.panel import PanelOLS
+class FemModel():
+    def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
+                featureimportance= 'corr', topfeature= 12, fithresh= 0.0, \
+                scoreconvert= '3-binning', scorethresh= 0.0):
+        self.count_error = 0
+        self.maxlag = maxlag
+        self.difftest = difftest
+        self.stationtest = stationtest
+        self.featureimportance = featureimportance
+        self.topfeature = topfeature
+
+        self.fithresh = fithresh
+        self.scoreconvert = scoreconvert
+        self.scorethresh = scorethresh
+    
+    def process(self, data, dependent, exog):
+        name = pd.Categorical(data.name)
+        TXDATE = pd.Categorical(data.TXDATE)
+        data["name"] = name
+        data["TXDATE"] = TXDATE
+        data.set_index(["TXDATE", "name"])
+
+        model = PanelOLS(data[dependent], data[exog])
+        res = model.fit()

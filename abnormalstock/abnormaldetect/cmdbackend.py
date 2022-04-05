@@ -1,3 +1,4 @@
+from cProfile import label
 from unittest import result
 import cx_Oracle, time
 import pandas as pd
@@ -196,77 +197,6 @@ def user_prediction(taskid, v_refversion, v_maxrows):
         # Re-raise the exception.
         raise        
 
-def init_taskid():
-    cursor, con = connect_data()
-    sql_findver = "SELECT MAX(TASKID) FROM TASKLOG_V2"
-    cursor.execute(sql_findver)
-    max_index = cursor.fetchall()[0][0]
-    return max_index+1
-def assign_param(results, hyperparams, hyperparams_tomodel,keys, num_params, index_param, ref_id):
-    if index_param == num_params:
-        taskid = init_taskid()
-        results.append(tasks.runtask.apply_async(args=[taskid, ref_id, hyperparams_tomodel]))
-    else:
-        for i in range(len(hyperparams[keys[index_param]])):
-            hyperparams_tomodel[keys[index_param]] = hyperparams[keys[index_param]][i]
-            assign_param(results, hyperparams, hyperparams_tomodel, keys, num_params, index_param + 1, ref_id)
-
-def autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time):
-    try:
-        task_id = init_taskid()
-    
-        con = cx_Oracle.connect(settings.BACKEND_DB)
-        cursor = con.cursor()
-        sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-        cursor.execute(sql_findref)
-        ref_data = cursor.fetchall()[0][0]
-
-        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
-        cursor.execute(sql_refversion)
-        ref = cursor.fetchall()[0][0]
-
-        sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
-        cursor.execute(sql_taskdata)
-        taskdata = cursor.fetchall()[0][0]
-
-        taskdata = taskdata.split(':')[1].split('-')
-
-        hyperparams = {}
-        hyperparams['StationarityTest'] = admin.stat_test
-        hyperparams['DiffTest'] = admin.diff_type
-        hyperparams['ReplaceNan'] = admin.replacenan
-        hyperparams['MinTradeDay'] = admin.mintradeday
-        hyperparams['Method'] = admin.method
-        hyperparams['MaxLag'] = admin.maxlag
-        hyperparams['FeatureImpotance']  = admin.feature_importance
-
-        hyperparams['FIThreshold'] = admin.fi_threshold
-        hyperparams['TopFeature'] = admin.topfeature
-        hyperparams['ScoreConvert'] = admin.score_convert
-        hyperparams['ScoreThreshold'] = admin.score_threshold
-        hyperparams['AbnormThreshold'] = admin.abnorm_threshold
-
-        hyperparams_tomodel = {}
-        hyperparams_tomodel['DatasetType'] = taskdata[0]
-        hyperparams_tomodel['MaCK'] = taskdata[1]
-        hyperparams_tomodel['FromDate'] = taskdata[2]
-        hyperparams_tomodel['ToDate'] = taskdata[3]
-
-        keys = hyperparams.keys()
-        num_params = len(keys)
-
-        ref_id = ref + '/' + '-1' + '/' + '-1'
-        p_paracontent = p_paracontent + str(task_id) + '\\' +  str(list(hyperparams.keys())) + '\\'+  str(list(hyperparams.values())) 
-        sql_insert = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
-                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
-                                    .format(p_taskcd, task_id, p_reftaskid, ver, ref_data, strt_time, strt_time, p_paracontent)
-        results = []
-        assign_param(results, hyperparams, hyperparams_tomodel, list(keys), num_params, 0, ref_id)
-        cursor.execute(sql_insert)
-        con.commit()
-        return results
-    except:
-        raise
 #Get frauditem belong to the model
 def user_predictversion(reflinkid):
     try:
@@ -633,6 +563,96 @@ def get_result_model(taskid):
 
     return results
 
+def init_taskid():
+    cursor, con = connect_data()
+    sql_findver = "SELECT MAX(TASKID) FROM TASKLOG_V2"
+    cursor.execute(sql_findver)
+    max_index = cursor.fetchall()[0][0]
+    return max_index+1
+    
+def assign_param(p_taskcd, p_taskid, p_reftaskid, ver, ref, strt_time, hyperparams, hyperparams_tomodel,keys, num_params, index_param):
+    if index_param == num_params:
+        cursor, con = connect_data()
+        p_paracontent_prep = "STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE: [{}/{}/{}/{}/{}/{}/{}]"\
+                            .format(hyperparams_tomodel["StationarityTest"], hyperparams_tomodel["DiffTest"], \
+                                    hyperparams_tomodel["ReplaceNan"], hyperparams_tomodel["MinTradeDay"],\
+                                    hyperparams_tomodel["Method"], hyperparams_tomodel["MaxLag"], hyperparams_tomodel["FeatureImpotance"])
+        prep_id = init_taskid()
+        sql_insert_prep = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format("PREPROCESSING", prep_id, p_reftaskid, ver, ref, strt_time, strt_time, p_paracontent_prep)
+        cursor.execute(sql_insert_prep)
+        con.commit()
+
+        p_paracontent_label = "FITHRESHOLD/TOPFEATURE/SCORECONVERT/SCORETHRESHOLD/ABNORMTHRESHOLD: [{}/{}/{}/{}/{}]"\
+                            .format(hyperparams_tomodel["FIThreshold"], hyperparams_tomodel["TopFeature"], \
+                                    hyperparams_tomodel["ScoreConvert"], hyperparams_tomodel["ScoreThreshold"], hyperparams_tomodel["AbnormThreshold"])
+        label_id = init_taskid()
+        sql_insert_label = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format("LABELLING", label_id, prep_id, ver, ref, strt_time, strt_time, p_paracontent_label)
+        cursor.execute(sql_insert_label)
+        con.commit()
+
+        p_paracontent_auto = "PREPROCESSINGID/LABELLINGID/MASTERID:{}/{}/{}".format(prep_id, label_id, p_taskid)
+        sql_insert_auto = "INSERT INTO TASKLOG_V2 (TASKCD, TASKID, REFID, VERSION, REFVERSION, TASKINIT, TASKSTART, PARACONTENT) VALUES \
+                                    ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
+                                    .format(p_taskcd, label_id, p_reftaskid, ver, ref, strt_time, strt_time, p_paracontent_auto)
+        con.commit()
+        ref_id = ref + '\\' + label_id + '\\' + prep_id
+
+        tasks.runtask.apply_async(args=[p_taskid, ref_id, hyperparams_tomodel])
+        cursor.execute(sql_insert_auto)
+
+    else:
+        for i in range(len(hyperparams[keys[index_param]])):
+            hyperparams_tomodel[keys[index_param]] = hyperparams[keys[index_param]][i]
+            assign_param(p_taskcd, p_taskid, p_reftaskid, ver, ref, strt_time, hyperparams, hyperparams_tomodel, keys, num_params, index_param + 1)
+
+def autorun(p_taskid, p_taskcd, p_reftaskid, ver, strt_time):
+    try:
+        con = cx_Oracle.connect(settings.BACKEND_DB)
+        cursor = con.cursor()
+
+        sql_refversion = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
+        cursor.execute(sql_refversion)
+        ref = cursor.fetchall()[0][0]
+
+        sql_taskdata = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE VERSION='{}'".format(ref)
+        cursor.execute(sql_taskdata)
+        taskdata = cursor.fetchall()[0][0]
+
+        taskdata = taskdata.split(':')[1].split('-')
+
+        hyperparams = {}
+        hyperparams['StationarityTest'] = admin.stat_test
+        hyperparams['DiffTest'] = admin.diff_type
+        hyperparams['ReplaceNan'] = admin.replacenan
+        hyperparams['MinTradeDay'] = admin.mintradeday
+        hyperparams['Method'] = admin.method
+        hyperparams['MaxLag'] = admin.maxlag
+        hyperparams['FeatureImpotance']  = admin.feature_importance
+
+        hyperparams['FIThreshold'] = admin.fi_threshold
+        hyperparams['TopFeature'] = admin.topfeature
+        hyperparams['ScoreConvert'] = admin.score_convert
+        hyperparams['ScoreThreshold'] = admin.score_threshold
+        hyperparams['AbnormThreshold'] = admin.abnorm_threshold
+
+        hyperparams_tomodel = {}
+        hyperparams_tomodel['DatasetType'] = taskdata[0]
+        hyperparams_tomodel['MaCK'] = taskdata[1]
+        hyperparams_tomodel['FromDate'] = taskdata[2]
+        hyperparams_tomodel['ToDate'] = taskdata[3]
+
+        keys = hyperparams.keys()
+        num_params = len(keys)
+
+        assign_param(p_taskcd, p_taskid, p_reftaskid, ver, ref, strt_time, hyperparams, hyperparams_tomodel, list(keys), num_params, 0)
+
+    except:
+        raise
+
 def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_extversion):
     try:
         strt_time = time.ctime()
@@ -641,7 +661,9 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
         
         results = []
         if p_taskcd == 'AUTOMODELLING':
-            results = autorun(p_taskcd, p_reftaskid, p_paracontent, ver, strt_time)
+            p_taskid = init_taskid()
+            autorun(p_taskid, p_taskcd, p_reftaskid, ver, strt_time)
+            results = get_result_model(p_taskid)
 
         elif p_taskcd == 'MODELLING': 
             sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
@@ -698,7 +720,7 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['ToDate'] = taskdata[3]
 
             tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
-            time.sleep(15)
+            time.sleep(7200)
             results = get_result_model(task_id)
 
         else:

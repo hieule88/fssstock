@@ -27,8 +27,8 @@ def upload_image(data, typeof, taskid, ref_id, ver, p_ticker):
             threshold = data[1]
             threshold = [threshold for i in range(len(squared_errors))]
             dates = data[2]
-            plt.plot(dates, squared_errors, '--', label = 'Squared Errors',)
-            plt.plot(dates, threshold, label = 'Threshold')
+            plt.plot(dates, squared_errors, label = 'Squared Errors',)
+            plt.plot(dates, threshold, '--', label = 'Threshold')
             plt.xlabel('Date')
             plt.ylabel('Error')
             plt.title('Error Chart')
@@ -122,7 +122,7 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
     if input_start_date == '01/01/2019' and \
         input_end_date =='01/01/2021' and \
         input_ticker == 'ALL' :
-        dataset = pd.DataFrame(pd.read_csv('C:/work/FSS_stock/dataset/TradingHistory.csv'))
+        dataset = pd.DataFrame(pd.read_csv('C:/Users/Admin/Desktop/FinancialDetection/code/fssstock/dataset/TradingHistory.csv'))
         dataset.drop(columns=['Unnamed: 0'], inplace=True)
     else:
         if input_ticker == 'ALL':
@@ -161,7 +161,6 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             ticker_infor = preprocessor.preprocess(ticker_infor)
 
             ticker_infor['name'] = [p_ticker for i in range(len(ticker_infor.index))]
-
 
             abnormpredict, top, squared_errors, threshold, tx_date, real_close_cost, resid = var_model.process(ticker_infor, p_ticker, )
             numabnormday = abnormpredict.size / 2
