@@ -599,7 +599,7 @@ def assign_param(p_taskcd, p_taskid, p_reftaskid, ver, ref, strt_time, hyperpara
                                     ('{}', {}, {}, '{}', '{}', '{}', '{}', '{}') "\
                                     .format(p_taskcd, label_id, p_reftaskid, ver, ref, strt_time, strt_time, p_paracontent_auto)
         con.commit()
-        ref_id = ref + '\\' + label_id + '\\' + prep_id
+        ref_id = ref + '\\' + str(label_id) + '\\' + str(prep_id)
 
         tasks.runtask.apply_async(args=[p_taskid, ref_id, hyperparams_tomodel])
         cursor.execute(sql_insert_auto)

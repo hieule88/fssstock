@@ -147,24 +147,29 @@ class VarModel():
         if self.difftest == 'diffty':
             differenced_data = data[column].diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
+            differenced_data.fillna(0, inplace=True)
             return differenced_data
         elif self.difftest == 'log':
             differenced_data = data[column].apply(np.log)
             differenced_data.interpolate(method='ffill', order=2, inplace=True)
+            differenced_data.fillna(0, inplace=True)
             return differenced_data
         elif self.difftest == 'cbrt':
             differenced_data = data[column].apply(np.cbrt)
             differenced_data.interpolate(method='ffill', order=2, inplace=True)
+            differenced_data.fillna(0, inplace=True)
             return differenced_data
         elif self.difftest == 'log&diffty':
             differenced_data = data[column].apply(np.log)
             differenced_data = differenced_data.diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
+            differenced_data.fillna(0, inplace=True)
             return differenced_data  
         elif self.difftest == 'cbrt&diffty':
             differenced_data = data[column].apply(np.cbrt)
             differenced_data = differenced_data.diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
+            differenced_data.fillna(0, inplace=True)
             return differenced_data            
     
     def retransform(self, element, data):

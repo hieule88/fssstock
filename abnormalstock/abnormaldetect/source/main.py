@@ -179,10 +179,10 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
             else:
                 p_logontent = 'Success but Numabnormday < Abnormthresh' + ' at Ticker: ' + p_ticker
             p_status = 'S'
-            success = success+1
-            if success == 3:
-                print('Successed !!!')
-                return 0
+            # success = success+1
+            # if success == 3:
+            #     print('Successed !!!')
+            #     return 0
 
         except Exception as e:
             count_error = count_error+1
@@ -194,8 +194,8 @@ def RUNVARMODEL(taskid, ref_id, hyperparams):
                         VALUES (:1,:2,:3,:4,:5)"
         cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
         con.commit()
-        if count_error == 10:
-            print('Failed !!!')
-            return 0
+        # if count_error == 10:
+        #     print('Failed !!!')
+        #     return 0
         # break
     return abnormdays
