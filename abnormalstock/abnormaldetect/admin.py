@@ -83,6 +83,42 @@ try:
     feature_importance = data_var_dict['FEATUREIMPORTANCE']
 except:
     print('Cant find any {} in allcode2'.format('feature_importance'))
+try:
+    maxlag = data_var_dict['ENTITYEFFECTS']
+except:
+    print('Cant find any {} in allcode2'.format('EntityEffects'))
+try:
+    maxlag = data_var_dict['TIMEEFFECTS']
+except:
+    print('Cant find any {} in allcode2'.format('TimeEffects'))
+try:
+    maxlag = data_var_dict['OTHEREFFECTS']
+except:
+    print('Cant find any {} in allcode2'.format('OtherEffects'))
+try:
+    maxlag = data_var_dict['USELSDV']
+except:
+    print('Cant find any {} in allcode2'.format('UseLsdv'))
+try:
+    maxlag = data_var_dict['USELSMR']
+except:
+    print('Cant find any {} in allcode2'.format('UseLsmr'))
+try:
+    maxlag = data_var_dict['LOWMEMORY']
+except:
+    print('Cant find any {} in allcode2'.format('LowMemory'))
+try:
+    maxlag = data_var_dict['COVTYPE']
+except:
+    print('Cant find any {} in allcode2'.format('CovType'))
+try:
+    maxlag = data_var_dict['LEVEL']
+except:
+    print('Cant find any {} in allcode2'.format('Level'))
+try:
+    maxlag = data_var_dict['HASCONSTANT']
+except:
+    print('Cant find any {} in allcode2'.format('HasConstant'))
 
 # LABELLING:
 try:

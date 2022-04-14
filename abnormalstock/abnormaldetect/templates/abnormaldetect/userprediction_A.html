@@ -13,13 +13,12 @@
     <tbody>
     {% for message in message_list_result.0 %}
         <tr>
-            <td>{{ 'VAR' }}</td>
+            <td>{{ message.5 }}</td>
             <td>{{ message.0 }}</td>
             <td>{{ message.1 }}</td>
             <td>{{ message.2 }}</td>
             <td>{{ message.3 }}</td>
             <td>{{ message.4 }}</td>             
-            <td>{{ message.5 }}</td>             
         </tr>
     {% endfor %}
     </tbody>
@@ -37,7 +36,7 @@
     <tbody>
     {% for message in message_list_result.1 %}
         <tr>
-            <td>{{ 'VAR' }}</td>
+            <td>{{ 'FEM' }}</td>
             <td>{{ message.0 }}</td>
             <td>{{ message.1 }}</td>
             <td>{{ message.2 }}</td>           

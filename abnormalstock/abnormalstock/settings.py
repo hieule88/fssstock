@@ -95,8 +95,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'abnormalstock.wsgi.application'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
-CELERY_BROKER_URL = 'amqp://localhost'
-CELERY_RESULT_BACKEND = 'rpc://localhost'
 BYPASS_AUTHENTICATE = True
 
 
@@ -284,3 +282,5 @@ INQUIRY_CHOICES =(
     ("A", "Model Accurancy"),
     ("D", "Data in detail"),
 )
+CELERY_BROKER_URL = 'amqp://localhost'
+CELERY_RESULT_BACKEND = 'rpc://localhost'

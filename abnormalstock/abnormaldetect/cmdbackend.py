@@ -1,4 +1,5 @@
 from cProfile import label
+from turtle import title
 from unittest import result
 import cx_Oracle, time
 import pandas as pd
@@ -8,7 +9,7 @@ from abnormaldetect import tasks
 import pickle
 import base64
 import matplotlib.pyplot as plt
-from abnormaldetect.source.main import RUNVARMODEL
+from abnormaldetect.source.main import RUNALLMODEL
 from abnormaldetect.source.upload_to_db import connect_data
 from datetime import datetime
 from abnormaldetect import admin
@@ -192,7 +193,7 @@ def user_prediction(taskid, v_refversion, v_maxrows):
         hyperparams['FromDate'] = taskdata[2]
         hyperparams['ToDate'] = taskdata[3]
 
-        return RUNVARMODEL(taskid, ref_id, hyperparams)
+        return RUNALLMODEL(taskid, ref_id, hyperparams)
     except:
         # Re-raise the exception.
         raise        
@@ -541,9 +542,6 @@ def task_data_submit(p_datatype, p_mack, p_fromdate, p_todate):
         # Re-raise the exception.
         raise        
 
-def get_unique_mack():
-    return
-
 def get_result_model(taskid):
     cursor, conn = connect_data()
     # sql_mack = "SELECT DISTINCT MACK FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(taskid)
@@ -551,9 +549,27 @@ def get_result_model(taskid):
     # mack = cursor.fetchall()[0]
 
     results = []
-    sql_res_predict = "SELECT MACK, CDDATE, STATUS, RESIDUALS, SCORE FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(taskid)
+
+    sql_querry_preprocess = "SELECT DISTINCT ID_PREPROCESSING FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(taskid)
+    cursor.execute(sql_querry_preprocess)
+    id_preprocess = cursor.fetchall()[0][0]
+
+    sql_query_pram = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocess)
+    cursor.execute(sql_query_pram)
+    param_preprocess = cursor.fetchall()[0][0]
+
+    # GET METHOD NAME
+    title_params = param_preprocess.split(': ')[0].split('/')
+    model = 0
+    for tit in range(len(title_params)):
+        if title_params[tit] == 'METHOD':
+            model = tit
+    method = param_preprocess.split(': ')[1].split('/')[model].upper()
+
+    sql_res_predict = "SELECT MACK, CDDATE, STATUS, RESIDUALS, SCORE, '{}' FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING={}".format(method, taskid)
     cursor.execute(sql_res_predict)
     data_predict = cursor.fetchall()
+
     results.append(data_predict)
     
     sql_res_impfeatures = 'SELECT MACK, VARIABLE, SCORE FROM RES_VARIABLE_SCORE_2 WHERE ID_MODELLING ={}'.format(taskid)
@@ -706,7 +722,17 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['MinTradeDay'] = preprocessing[3]
             hyperparams['Method'] = preprocessing[4]
             hyperparams['MaxLag'] = preprocessing[5]
-            hyperparams['FeatureImpotance']  = preprocessing[6].split(']')[0]
+            hyperparams['FeatureImpotance']  = preprocessing[6]
+
+            hyperparams['EntityEffects']  = preprocessing[7]
+            hyperparams['TimeEffects']  = preprocessing[8]
+            hyperparams['OtherEffects']  = preprocessing[9]
+            hyperparams['UseLsdv']  = preprocessing[10]
+            hyperparams['UseLsmr']  = preprocessing[11]
+            hyperparams['LowMemory']  = preprocessing[12]
+            hyperparams['CovType']  = preprocessing[13]
+            hyperparams['Level']  = preprocessing[14]
+            hyperparams['HasConstant']  = preprocessing[15].split(']')[0]
 
             hyperparams['FIThreshold'] = labelling[0].split('[')[1]
             hyperparams['TopFeature'] = labelling[1]
@@ -719,8 +745,9 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['FromDate'] = taskdata[2]
             hyperparams['ToDate'] = taskdata[3]
 
-            tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
-            time.sleep(7200)
+            celery_results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
+            while not celery_results.ready():
+                pass
             results = get_result_model(task_id)
 
         else:
@@ -771,24 +798,85 @@ def task_para_get(v_para_typ):
         ###################################
         con = cx_Oracle.connect(settings.BACKEND_DB)
         cursor = con.cursor()
-        sql_query = "SELECT VERSION, PARACONTENT, TASKID, REFID, TASKSTART FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_para_typ)
-        cursor.execute(sql_query)
-        
-        results = cursor.fetchall()
-        if v_para_typ == 'TASKDATA':
-            for res_ind in range(len(results)) :
-                ref, cont, _, __, ___ = results[res_ind]
-                cont = cont.split(':')[1].split('-')
-                cont.append(ref)
-                cont.append(res_ind+1)
-                results[res_ind] = cont
-            return results
-        elif v_para_typ == 'PREPROCESSING':
-            pass
-        elif v_para_typ == 'LABELLING':
-            pass
-        elif v_para_typ == 'MODELLING':
-            pass
+
+        if v_para_typ != 'DASHBOARD':
+            sql_query = "SELECT VERSION, PARACONTENT, TASKID, REFID, TASKSTART FROM TASKLOG_V2 WHERE TASKCD='{}'".format(v_para_typ)
+            cursor.execute(sql_query)
+            
+            results = cursor.fetchall()
+            if v_para_typ == 'TASKDATA':
+                for res_ind in range(len(results)) :
+                    ref, cont, _, __, ___ = results[res_ind]
+                    cont = cont.split(':')[1].split('-')
+                    cont.append(ref)
+                    cont.append(res_ind+1)
+                    results[res_ind] = cont
+                return results
+            elif v_para_typ == 'PREPROCESSING':
+                pass
+            elif v_para_typ == 'LABELLING':
+                pass
+            elif v_para_typ == 'MODELLING':
+                pass
+        # GET 
+        else:
+            taskids = task_get_distinct('RES_PREDICT_FRAUD_2','ID_MODELLING')
+            outputs = []
+            for taskid in taskids:
+                try:
+                    output = []
+                    sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
+                    cursor.execute(sql_query)
+                    id_labelling = cursor.fetchall()[0][0]
+                    sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
+                    cursor.execute(sql_query)
+                    model_param = cursor.fetchall()[0][0]
+                    sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_labelling)
+                    cursor.execute(sql_query)
+                    label_param = cursor.fetchall()[0][0]
+
+
+                    sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(id_labelling)
+                    cursor.execute(sql_query)
+                    id_preprocess = cursor.fetchall()[0][0]
+
+                    sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='PREPROCESSING' AND TASKID={}".format(id_preprocess)
+                    cursor.execute(sql_query)
+                    preprocess_param = cursor.fetchall()[0][0]
+                    
+                    # GET MODEL
+                    title_params = preprocess_param.split(': ')[0].split('/')
+                    model = 0
+                    for tit in range(len(title_params)):
+                        if title_params[tit] == 'METHOD':
+                            model = tit
+                    model_name = preprocess_param.split(': ')[1].split('/')[model]
+                    output.append(model_name.upper())
+
+                    # GET PARAM
+                    output.append('MODELLING: ' + model_param)
+                    output.append('PREPROCESSING: ' + preprocess_param)
+                    output.append('LABELLING: ' + label_param)
+
+                    # GET NUM DETECTED
+                    sql_query = "SELECT COUNT ( DISTINCT MACK ) FROM RES_PREDICT_FRAUD_2 WHERE ID_MODELLING='{}'".format(taskid)
+                    cursor.execute(sql_query)
+                    number_mack = cursor.fetchall()[0][0]
+                    output.append(number_mack)
+
+                    # GET DATASET
+                    sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocess)
+                    cursor.execute(sql_query)
+                    refversion = cursor.fetchall()[0][0]
+                    sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(refversion)
+                    cursor.execute(sql_query)
+                    refdata = cursor.fetchall()[0][0]
+                    output.append('DATASET: ' + refdata)
+                    
+                    outputs.append(output)
+                except: 
+                    continue
+            return outputs
         ###################################
     except:
         # Re-raise the exception.

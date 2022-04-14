@@ -692,6 +692,32 @@ def taskchart(request):
     return render(request, "abnormaldetect/taskchart.html", context)
 
 @csrf_exempt
+def taskdashboard(request):
+    context = {'vendor': 'FSS'}
+    try:
+        queryset =  cmdbackend.task_para_get('DASHBOARD')
+        context = {
+            "message_list": queryset,
+        }
+    except Exception as e:
+        just_the_string = traceback.format_exc()
+        messages.add_message(request, messages.ERROR, just_the_string)
+    return render(request, "abnormaldetect/taskdashboard.html", context)   
+
+@csrf_exempt
+def taskresult(request):
+    context = {'vendor': 'FSS'}
+    try:
+        queryset =  cmdbackend.task_para_get('DASHBOARD')
+        context = {
+            "message_list": queryset,
+        }
+    except Exception as e:
+        just_the_string = traceback.format_exc()
+        messages.add_message(request, messages.ERROR, just_the_string)
+    return render(request, "abnormaldetect/taskresult.html", context) 
+
+@csrf_exempt
 def taskquery(request):
     context = {'vendor': 'FSS'}
     try:
@@ -834,19 +860,29 @@ def taskpreprocessing(request):
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
-                    para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE: ['
+                    para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE/ENTITYEFFECTS/TIMEEFFECTS/OTHEREFFECTS/USELSDV/USELSMR/LOWMEMORY/COVTYPE/LEVEL/HASCONSTANT: ['
                     para_content = para_content + cd['StationarityTest'] + '/'
                     para_content = para_content + cd['DiffTest'] + '/'
                     para_content = para_content + cd['ReplaceNan'] + '/'
                     para_content = para_content + str(cd['MinTradeDay']) + '/'
                     para_content = para_content + cd['Method'] + '/'
                     para_content = para_content + str(cd['MaxLag']) + '/'
-                    para_content = para_content + cd['FeatureImpotance'] + ']'
+                    para_content = para_content + cd['FeatureImpotance'] + '/'
+
+                    para_content = para_content + cd['EntityEffects'] + '/'
+                    para_content = para_content + cd['TimeEffects'] + '/'
+                    para_content = para_content + cd['OtherEffects'] + '/'
+                    para_content = para_content + cd['UseLsdv'] + '/'
+                    para_content = para_content + cd['UseLsmr'] + '/'
+                    para_content = para_content + cd['LowMemory'] + '/'
+                    para_content = para_content + cd['CovType'] + '/'
+                    para_content = para_content + cd['Level'] + '/'
+                    para_content = para_content + cd['HasConstant'] + ']'
                     cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
         else:
             form = PreprocessingForm()   
         queryset =  cmdbackend.task_log_activity(taskcd,'',0)
-        print(queryset)
+        # print(queryset)
         context = {
             "message_list": queryset,
             "form": form

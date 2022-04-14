@@ -7,6 +7,7 @@ import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from statsmodels.tsa.api import VAR
+from dateutil import parser
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -88,6 +89,11 @@ def binning(scoreconvert, scorethresh, datacolumn):
                         datacolumn.at[i, 'Score'] =4
 
         return datacolumn
+
+def find_anomalies(squared_errors):
+    threshold = np.mean(squared_errors) + np.std(squared_errors)
+    predictions = (squared_errors >= threshold).astype(int)
+    return predictions, threshold
 
 class VarModel():
     def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
@@ -171,26 +177,6 @@ class VarModel():
             differenced_data.fillna(differenced_data.mean(), inplace=True)
             differenced_data.fillna(0, inplace=True)
             return differenced_data            
-    
-    def retransform(self, element, data):
-        if self.difftest == 'mean':
-            redata = [element]
-            for i in range(1,len(data)):
-                element = element + data[i]
-                redata.append(element)
-            return redata
-        elif self.difftest == 'log':
-            differenced_data = data.apply(np.log)
-            differenced_data = np.log(data)
-            return differenced_data
-        elif self.difftest == 'saiphan':
-            # ADD SAI PHAN
-            return
-
-    def find_anomalies(self, squared_errors):
-        threshold = np.mean(squared_errors) + np.std(squared_errors)
-        predictions = (squared_errors >= threshold).astype(int)
-        return predictions, threshold
 
     def process(self, dataset, p_ticker):
         ticker_feature = dataset.loc[dataset['name']==p_ticker].drop(columns='name')
@@ -224,7 +210,7 @@ class VarModel():
                 
                 price_errors = binning(self.scoreconvert, self.scorethresh, price_errors)
 
-                predictions, threshold = self.find_anomalies(squared_errors) 
+                predictions, threshold = find_anomalies(squared_errors)
 
                 data = pd.concat([ticker_feature[column_to_model].iloc[selected_lag:, :], txdate.iloc[selected_lag:],price_errors[selected_lag:]], axis=1)
                 data['Predictions'] = predictions.values
@@ -238,7 +224,6 @@ class VarModel():
 
                 # retransform_residual, predict_close_cost = self.retransform(ticker_feature['close'][selected_lag:], residual.values)
                 
-
                 # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
                 return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], \
                         top, squared_errors, threshold, txdate.iloc[selected_lag:], \
@@ -270,47 +255,160 @@ class VarModel():
 
 from linearmodels.panel import RandomEffects
 class RemModel():
-    def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
+    def __init__(self, cov_type: str, level: int, has_constant: False, small_sample= False, \
+                maxlag=5, difftest= 'diffty', stationtest= 'adf', \
                 featureimportance= 'corr', topfeature= 12, fithresh= 0.0, \
                 scoreconvert= '3-binning', scorethresh= 0.0):
         self.count_error = 0
+
+        # REM'S PARAMETERS
+        self.cov_type = cov_type
+        self.level = level
+        self.has_constant = has_constant
+        self.small_sample = small_sample
+
+        # FOR STATIONARITY TEST AND TRANSFORM
         self.maxlag = maxlag
         self.difftest = difftest
         self.stationtest = stationtest
         self.featureimportance = featureimportance
         self.topfeature = topfeature
 
+        # FOR LABELLING
         self.fithresh = fithresh
         self.scoreconvert = scoreconvert
         self.scorethresh = scorethresh
     
-    def process(self, data, dependent, exog):
-        data.set_index("TXDATE")
-        model = RandomEffects(data[dependent], data[exog])
+    def process(self, data):
+        txdate_ogn = data['TXDATE']
+        name = pd.Categorical(data.name)
+        data['TXDATE'] = data['TXDATE'].apply(parser.parse)
+        data["name"] = name
+        txdate = pd.Categorical(data.TXDATE)
+        data = data.set_index(["name", "TXDATE"])
+        data["TXDATE"] = txdate
+        dependent = 'close'
+        exog = list(data.columns)
+        exog.remove(dependent)
+
+        model = RandomEffects(data[dependent], data[exog], check_rank = False)
         res = model.fit()
-          
+        resid = res.resids
+        price_errors = pd.DataFrame(resid)
+        price_errors.rename(columns={'residual': 'Score'}, inplace=True)
+        residual = price_errors.copy(deep= True)
+        
+        price_errors = binning(self.scoreconvert, self.scorethresh, price_errors)
+        squared_errors = np.square(resid)
+        
+        predictions, threshold = find_anomalies(squared_errors) 
+        
+        results = pd.concat([data['close'], price_errors], axis=1)
+        results['Predictions'] = predictions.values
+        results['Residual'] = residual.values
+        results['TXDATE'] = results.index.get_level_values('TXDATE')
+        results = results.droplevel('TXDATE')
+        # top = self.feature_importance(data)
+
+        # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
+        return results[['TXDATE', 'Score', 'Residual']].loc[results['Predictions'] ==1], \
+                        squared_errors, threshold, txdate, \
+                        data['close'], residual.values
+        # return results[['TXDATE', 'Score', 'Residual']].loc[results['Predictions'] ==1], \
+        #                 top, squared_errors, threshold, txdate, \
+        #                 data['close'], residual.values
+
+    def feature_importance(self, ticker_feature):
+        if self.featureimportance == 'corr' :
+            corr = pd.DataFrame(ticker_feature.corr(method='pearson')['close'])
+            coef_dict = dict(zip(corr.index ,corr.values))
+            coef_dict = dict(sorted(coef_dict.items(), key= lambda item: item[1], reverse=True)[1 : self.topfeature + 1])
+            return coef_dict
+            
+        elif self.featureimportance == 'varcorr':
+            print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')
+
 from linearmodels.panel import PanelOLS
 class FemModel():
-    def __init__(self, maxlag=5, difftest= 'diffty', stationtest= 'adf', \
+    def __init__(self, low_memory: str, cov_type: str, level: int, has_constant= True, \
+                entity_effects=True, time_effects=True, other_effects=None, \
+                use_lsdv=False, use_lsmr=False, \
+                difftest= 'diffty', stationtest= 'adf', \
                 featureimportance= 'corr', topfeature= 12, fithresh= 0.0, \
                 scoreconvert= '3-binning', scorethresh= 0.0):
         self.count_error = 0
-        self.maxlag = maxlag
+        
+        # FEM'S PARAMETERS
+        self.entity_effects = entity_effects
+        self.time_effects = time_effects
+        self.other_effects = other_effects
+        self.use_lsdv = use_lsdv
+        self.use_lsmr = use_lsmr
+        
+        self.low_memory = low_memory
+        self.cov_type = cov_type
+        self.level = level
+        self.has_constant = has_constant
+
+        # FOR STATIONARITY TEST AND TRANSFORM
         self.difftest = difftest
         self.stationtest = stationtest
         self.featureimportance = featureimportance
         self.topfeature = topfeature
 
+        # FOR LABELLING
         self.fithresh = fithresh
         self.scoreconvert = scoreconvert
         self.scorethresh = scorethresh
     
-    def process(self, data, dependent, exog):
+    def process(self, data):
         name = pd.Categorical(data.name)
-        TXDATE = pd.Categorical(data.TXDATE)
+        data['TXDATE'] = data['TXDATE'].apply(parser.parse)
         data["name"] = name
-        data["TXDATE"] = TXDATE
-        data.set_index(["TXDATE", "name"])
+        txdate = pd.Categorical(data.TXDATE)
+        data = data.set_index(["name", "TXDATE"])
+        data["TXDATE"] = txdate
+        dependent = 'close'
+        exog = list(data.columns)
+        exog.remove(dependent)
 
-        model = PanelOLS(data[dependent], data[exog])
-        res = model.fit()
+        model = PanelOLS(data[dependent], data[exog], check_rank = False, entity_effects= self.entity_effects, \
+                        time_effects= self.time_effects)
+                        
+        res = model.fit(use_lsdv = self.use_lsdv, use_lsmr = self.use_lsmr, \
+                        low_memory = self.low_memory, cov_type = self.cov_type)
+
+        resid = res.resids
+        price_errors = pd.DataFrame(resid)
+        price_errors.rename(columns={'residual': 'Score'}, inplace=True)
+        residual = price_errors.copy(deep= True)
+        
+        price_errors = binning(self.scoreconvert, self.scorethresh, price_errors)
+        squared_errors = np.square(resid)
+        
+        predictions, threshold = find_anomalies(squared_errors) 
+        
+        results = pd.concat([data['close'], price_errors], axis=1)
+        results['Predictions'] = predictions.values
+        results['Residual'] = residual.values
+        results['TXDATE'] = results.index.get_level_values('TXDATE')
+        results = results.droplevel('TXDATE')
+        # top = self.feature_importance(data)
+
+        # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
+        return results[['TXDATE', 'Score', 'Residual']].loc[results['Predictions'] ==1], \
+                        squared_errors, threshold, txdate, \
+                        data['close'], residual.values
+        # return results[['TXDATE', 'Score', 'Residual']].loc[results['Predictions'] ==1], \
+        #                 top, squared_errors, threshold, txdate, \
+        #                 data['close'], residual.values
+
+    def feature_importance(self, ticker_feature):
+        if self.featureimportance == 'corr' :
+            corr = pd.DataFrame(ticker_feature.corr(method='pearson')['close'])
+            coef_dict = dict(zip(corr.index ,corr.values))
+            coef_dict = dict(sorted(coef_dict.items(), key= lambda item: item[1], reverse=True)[1 : self.topfeature + 1])
+            return coef_dict
+            
+        elif self.featureimportance == 'varcorr':
+            print('CHỨC NĂNG ĐANG PHÁT TRIỂN, HÃY THỬ LẠI THUỘC TÍNH FEATURE IMPORTANCE = CORR')

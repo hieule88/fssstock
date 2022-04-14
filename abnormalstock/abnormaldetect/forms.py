@@ -1,3 +1,4 @@
+from email.policy import default
 from django import forms
 from django.core.validators import MinValueValidator, MaxValueValidator
 from abnormaldetect.models import LogMessage
@@ -99,10 +100,35 @@ class QueryForm(forms.Form):
 
 class ChartForm(forms.Form):
     # get unique id_modelling
+    set_dataversion = cmdbackend.task_choosing('TASKDATA')
+    ref_dataversion = []
+    for i, content in enumerate(set_dataversion):
+        cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+        ref_dataversion.append((content[0], cont))
+    DATASET = forms.ChoiceField(
+        choices=ref_dataversion, label="DATASET" )    
+
+    set_dataversion = cmdbackend.task_choosing('PREPROCESSING')
+    ref_dataversion = []
+    for i, content in enumerate(set_dataversion):
+        cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+        ref_dataversion.append((content[0], cont))
+    PREPROCESSING = forms.ChoiceField(
+        choices=ref_dataversion, label="PREPROCESSING" )
+
+    set_dataversion = cmdbackend.task_choosing('LABELLING')
+    ref_dataversion = []
+    for i, content in enumerate(set_dataversion):
+        cont = 'TaskID: {}, RootVersion: {}||{}'.format(content[0], content[1], content[2])
+        ref_dataversion.append((content[0], cont))
+    LABELLING = forms.ChoiceField(
+        choices=ref_dataversion, label="LABELLING" )  
+
     set_taskid = cmdbackend.task_get_distinct('RES_VAR_IMG', 'ID_MODELLING')
     ref_taskid = [(id, id) 
                 for id in set_taskid]    
     ID_MODELLING = forms.ChoiceField(choices  = ref_taskid, label="ID_MODELLING")
+    
     set_mack = cmdbackend.task_get_distinct('RES_VAR_IMG', 'mack')
     ref_mack = [(id, id) 
                 for id in set_mack]    
@@ -171,8 +197,18 @@ class PreprocessingForm(forms.Form):
     MinTradeDay = forms.IntegerField(label = "MINTRADEDAY", required= True, initial=60)
 
     Method = forms.ChoiceField(label = "METHOD", choices  = admin.PARAMS['METHOD'], required= True)
-    MaxLag = forms.IntegerField(label = "MAXLAG", required= True, initial=5)
+    MaxLag = forms.IntegerField(label = "MAXLAG", required= False, initial=5)
     FeatureImpotance = forms.ChoiceField(label = "FEATUREIMPORTANCE", choices  = admin.PARAMS['FEATUREIMPORTANCE'], required= True)
+    
+    EntityEffects = forms.ChoiceField(label = "ENTITYEFFECTS", choices  = admin.PARAMS['ENTITYEFFECTS'], required= False)
+    TimeEffects = forms.ChoiceField(label = "TIMEEFFECTS", choices  = admin.PARAMS['TIMEEFFECTS'], required= False)
+    OtherEffects = forms.ChoiceField(label = "OTHEREFFECTS", choices  = admin.PARAMS['OTHEREFFECTS'], required= False)
+    UseLsdv = forms.ChoiceField(label = "USELSDV", choices  = admin.PARAMS['USELSDV'], required= False)
+    UseLsmr = forms.ChoiceField(label = "USELSMR", choices  = admin.PARAMS['USELSMR'], required= False)
+    LowMemory = forms.ChoiceField(label = "LOWMEMORY", choices  = admin.PARAMS['LOWMEMORY'], required= False)
+    CovType = forms.ChoiceField(label = "COVTYPE", choices  = admin.PARAMS['COVTYPE'], required= False) 
+    Level = forms.ChoiceField(label = "LEVEL", choices  = admin.PARAMS['LEVEL'], required= False)
+    HasConstant = forms.ChoiceField(label = "HASCONSTANT", choices  = admin.PARAMS['HASCONSTANT'], required= False)
 
 class LabellingForm(forms.Form):
     v_group='DEF_LABELLING'

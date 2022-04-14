@@ -46,4 +46,4 @@ if __name__ == '__main__':
     p_end_date='01/01/2021'
     p_ticker = 'FPT'
     parser = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', p_ticker, p_start_date, p_end_date)
-    print(parser.dataframe)
+    # print(parser.dataframe)

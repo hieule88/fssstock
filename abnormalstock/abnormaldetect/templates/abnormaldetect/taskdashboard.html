@@ -1,0 +1,45 @@
+{% extends "abnormaldetect/layout.html" %}
+{% block title %}
+    Data
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+    {% if user.is_authenticated %}
+        {% if message_list %}
+            <h1>Version of Model</h1>
+            <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+                <thead style="position: sticky;top: 0" class="thead-dark">
+                <tr>
+                    <th class="header" scope="col">Model</th>
+                    <th class="header" scope="col">Dataset</th>
+                    <th class="header" scope="col">Parameter</th>
+                    <th class="header" scope="col">Number of Detected Abnormals</th>
+                    <th class="header" scope="col">Important Features</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for message in message_list %}
+                    <tr>
+                    <td><a href="{% url 'taskresult' %}">{{ message.0 }}</a></td>
+                    <td>{{ message.5 }}</td>
+                    <td>
+                        {{ message.1 }}
+                        <br>
+                        {{ message.2 }}
+                        <br>
+                        {{ message.3 }}
+                    </td>
+                    <td>{{ message.4 }}</td>
+                    <td><a href="{% url 'taskresult' %}">(+)</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        <script>
+            $('#sortTable').DataTable();
+        </script>  
+        {% else %}
+            <p>Data is empty</p>
+        {% endif %}    
+    {% endif %}  
+{% endblock %}

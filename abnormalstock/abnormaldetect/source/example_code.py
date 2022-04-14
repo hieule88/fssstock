@@ -22,7 +22,7 @@ for col in refCursor.description:
     col_names.append(col[0])
 dfticker = pd.DataFrame.from_records(refCursor)
 dfticker.columns=col_names #dataframe of colname
-print(dfticker)
+# print(dfticker)
 
 # print(type(dfticker))
 # #Lich su giao dich cua ticker
