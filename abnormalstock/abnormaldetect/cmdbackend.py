@@ -765,10 +765,84 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
         # Re-raise the exception.
         raise        
 
-def get_model_result(raw_results):
-    results = []
+# GET IMPORTANT FEATURES
+def get_important_features(pticker, pid):
+    cursor, conn = connect_data()
+    sql_get_
+
+# GET TOP ABNORMAL TO SHOW AT HOME 
+# bug
+# NEED TO HANDLE DUPLICATE MACK
+def update_top_abnormal(top):
+    cursor, conn = connect_data()
+    # GET CURRENT TOP
+    sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
+    cursor.execute(sql_get_new_id)
+    max_index = cursor.fetchall()[0][0]
+
+    sql_get_top = "SELECT MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE \
+                    FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
+    cursor.execute(sql_get_top)
+    curr_top = cursor.fetchall()
+
+    # GET TOP OF NEW MODEL
+    sql_get_new_id = "SELECT MAX(ID_MODELLING) FROM RES_PREDICT_FRAUD_2"
+    cursor.execute(sql_get_new_id)
+    max_index = cursor.fetchall()[0][0]
+
+    cur_date = str(time.ctime())
+    sql_get_scores = "SELECT TOP {} MACK, AVG(ABS(RESIDUALS)), ID_MODELLING FROM RES_PREDICT_FRAUD_2 \
+                    WHERE ID_MODELLING={} GROUP BY MACK \
+                    ORDER BY AVG(ABS(RESIDUALS))".format(top*2, cur_date, max_index)
+    cursor.execute(sql_get_scores)
+    new_model_top50 = cursor.fetchall()
     
-    return results
+    # COMPARE TO GET NEW TOP
+    new_top50 = []
+    new_top50_mack = []
+    ind_curr = 0
+    ind_newmodel = 0
+    for ind in range(top) :
+        if ind_curr == len(curr_top):
+            new_top50.append(new_model_top50[ind_newmodel])
+            ind_newmodel = ind_newmodel + 1
+            continue
+        elif ind_newmodel == len(new_model_top50):
+            new_top50.append(curr_top[ind_curr])
+            ind_curr = ind_curr + 1
+            continue
+        
+        if curr_top[ind_curr][1] > new_model_top50[ind_newmodel][1]:
+            if curr_top[ind_curr][0] not in new_top50_mack:
+                new_top50.append(curr_top[ind_curr])
+                new_top50_mack.append(curr_top[ind_curr][0])
+            ind_curr = ind_curr + 1 
+        else:
+            if new_model_top50[ind_newmodel][0] not in new_top50_mack:
+                new_top50.append(new_model_top50[ind_newmodel])
+                new_top50_mack.append(new_model_top50[ind_newmodel][0])
+            ind_newmodel = ind_newmodel + 1 
+
+    # INSERT INTO RES_TOP_ABNORMAL
+
+# SHOW WHEN HOME PAGE IS LOADED
+def get_top_abnormal():
+    cursor, conn = connect_data()
+    # GET CURRENT TOP
+    sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
+    cursor.execute(sql_get_new_id)
+    max_index = cursor.fetchall()[0][0]
+
+    sql_get_top = "SELECT ID_MODELLING, MACK, SCORE, FEATURES, LASTDATE \
+                    FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
+    cursor.execute(sql_get_top)
+    curr_top = cursor.fetchall()
+
+    list_mack= [infor_mack[1] for infor_mack in curr_top][:15]
+    list_score= [infor_mack[2] for infor_mack in curr_top][:15]
+    heatmap = '.'
+
+    return heatmap, curr_top
 
 def trace_log_modelling(p_reftask):
     cur, conn = connect_data()
@@ -825,12 +899,15 @@ def task_para_get(v_para_typ):
             for taskid in taskids:
                 try:
                     output = []
+                    output.append(taskid)
+                    
                     sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
                     cursor.execute(sql_query)
                     id_labelling = cursor.fetchall()[0][0]
                     sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
                     cursor.execute(sql_query)
                     model_param = cursor.fetchall()[0][0]
+
                     sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_labelling)
                     cursor.execute(sql_query)
                     label_param = cursor.fetchall()[0][0]
@@ -843,7 +920,7 @@ def task_para_get(v_para_typ):
                     sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='PREPROCESSING' AND TASKID={}".format(id_preprocess)
                     cursor.execute(sql_query)
                     preprocess_param = cursor.fetchall()[0][0]
-                    
+
                     # GET MODEL
                     title_params = preprocess_param.split(': ')[0].split('/')
                     model = 0

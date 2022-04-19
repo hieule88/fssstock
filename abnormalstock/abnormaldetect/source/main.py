@@ -134,6 +134,7 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
 
     # VAR MODEL PROCESS
     if method == 'var':
+        print('RUNNING VAR MODEL')
         maxlag = int(hyperparams['MaxLag'])
         var_model = VarModel(maxlag, difftest, stationtest, featureimportance,\
                             topfeature, fithresh, scoreconvert, scorethresh)
@@ -142,9 +143,6 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
 
         for row in tqdm(reversed(list(tickers.iterrows())), desc= "Model Solving: ", total= len(tickers.index)):
         # Load ticker infor
-            print(row[0])
-            if row[0] > 1292:
-                continue
             try:
                 p_ticker = row[1]['TICKER']
                 ticker_infor = dataset.loc[dataset['TICKER']==p_ticker]
@@ -200,22 +198,29 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
     
     # FEM MODEL PROCESS
     elif method == 'fem':
-        entity_effects = hyperparams['EntityEffects']
-        time_effects = hyperparams['TimeEffects']
-        other_effects = hyperparams['OtherEffects']
-        use_lsdv = hyperparams['UseLsdv']
-        use_lsmr = hyperparams['UseLsmr']
+        print('RUNNING FEM MODEL')
+        entity_effects = int(hyperparams['EntityEffects'])
+        time_effects = int(hyperparams['TimeEffects'])
+        other_effects = int(hyperparams['OtherEffects'])
+        use_lsdv = int(hyperparams['UseLsdv'])
+        use_lsmr = int(hyperparams['UseLsmr'])
         
-        low_memory = hyperparams['LowMemory']
+        low_memory = int(hyperparams['LowMemory'])
+        if low_memory == -1:
+            low_memory = None
+
         cov_type = hyperparams['CovType']
         level = hyperparams['Level']
         has_constant = hyperparams['HasConstant']
 
-        fem_model = FemModel(low_memory, cov_type, level, \
-                            entity_effects, time_effects, other_effects, use_lsdv, use_lsmr, \
-                            difftest, stationtest, featureimportance,\
-                            topfeature, fithresh, scoreconvert, scorethresh)
+        fem_model = FemModel(low_memory=low_memory, cov_type=cov_type, level=level, \
+                            entity_effects=entity_effects, time_effects=time_effects, \
+                            use_lsdv=use_lsdv, use_lsmr=use_lsmr, \
+                            difftest=difftest, stationtest=stationtest, featureimportance=featureimportance,\
+                            topfeature=topfeature, fithresh=fithresh, scoreconvert=scoreconvert, scorethresh=scorethresh)
         success = 0
+        
+        # PREPROCESSING
         for row in tqdm(tickers.iterrows(), desc= "PreProcessing Data: ", total= len(tickers.index)):       
             try:
                 p_ticker = row[1]['TICKER']
@@ -237,7 +242,7 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
                 else:
                     data_all_tickers = pd.concat([data_all_tickers, ticker_infor], axis = 0)
                 success = success+1
-                if success == 10:
+                if success == 3:
                     print('Successed !!!')
                     break
             except Exception as e:
@@ -250,18 +255,31 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
                             VALUES (:1,:2,:3,:4,:5)"
                 cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
                 con.commit()
-        abnormpredict, squared_errors, threshold, tx_date, real_close_cost, resid = fem_model.process(data_all_tickers)
+        print('Done Preprocessing')
+        try:
+            abnormpredict, squared_errors, threshold, tx_date, real_close_cost, resid = fem_model.process(data_all_tickers)
+        except Exception as e:
+            p_status = 'Model Error'
+            p_logontent = str(e)
+            sql_insert = "INSERT INTO RES_LOG_CELERY(ID_MODELLING, REFVERSION, VERSION, STATUS, LOGCONTENT) \
+                            VALUES (:1,:2,:3,:4,:5)"
+            cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
+            con.commit()
+            return
+        
         tickers_suc_pre = set(abnormpredict.index.get_level_values(0))
+        
+        # MODEL RUNNING
         for p_ticker in tqdm(tickers_suc_pre, desc= 'Model Solving: ', total = len(tickers_suc_pre)):
             try:
                 numabnormday = 100
                 listresult = [numabnormday, p_ticker, abnormpredict['TXDATE'].tolist(), abnormpredict['Residual'].tolist(), abnormpredict['Score'].tolist()]
                 abnormdays.append(listresult)
 
-            # upload_image([squared_errors.tolist(), threshold, list(tx_date)], 'sq_error', taskid, ref_id, ver, p_ticker)
-            # upload_image([real_close_cost.tolist(), resid, list(tx_date)], 'residual', taskid, ref_id, ver, p_ticker)
+                # upload_image([squared_errors.tolist(), threshold, list(tx_date)], 'sq_error', taskid, ref_id, ver, p_ticker)
+                # upload_image([real_close_cost.tolist(), resid, list(tx_date)], 'residual', taskid, ref_id, ver, p_ticker)
                 upload_to_DB(listresult, typeof= 'predict', taskid= taskid, ref_id= ref_id, model = 'FEM', ver= ver)
-        # upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
+                # upload_to_DB([p_ticker, list(top.keys()), list(top.values())], typeof= 'feature', taskid= taskid, ref_id= ref_id, model = 'VAR', ver= ver)
                 p_logontent = 'Success' + ' at Ticker: ' + p_ticker
             except Exception as e:
                 count_error = count_error+1
@@ -276,6 +294,7 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
         print('DONE')
     # REM MODEL PROCESS
     elif method == 'rem':
+        print('RUNNING REM MODEL')
         fem_model = RemModel(difftest, stationtest, featureimportance,\
                             topfeature, fithresh, scoreconvert, scorethresh)
         success = 0
@@ -337,9 +356,3 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
             cursor.execute(sql_insert,[taskid, ref, ver, p_status, p_logontent])
             con.commit()
         print('DONE')
-
-def RUNFEMMODEL():
-    pass
-
-def RUNREMMODEL():
-    pass

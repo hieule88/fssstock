@@ -668,24 +668,29 @@ def taskcommand(request):
         return render(request, "abnormaldetect/taskcommand.html", context)
 
 @csrf_exempt
-def taskchart(request):
+def taskchart(request, ref_id='', ref_mack=''):
     context = {'vendor': 'FSS'}
     try:
-        if request.method == "POST":
-            form = ChartForm(request.POST)
-            if form.is_valid():
-                cd = form.cleaned_data
-                if 'para_submit' in request.POST:
-                    taskid = cd['ID_MODELLING']
-                    mack = cd['MACK']
-                    queryset = cmdbackend.get_chart_result(taskid, mack)
+        if ref_id == '':
+            if request.method == "POST":
+                form = ChartForm(request.POST)
+                if form.is_valid():
+                    cd = form.cleaned_data
+                    if 'para_submit' in request.POST:
+                        taskid = cd['ID_MODELLING']
+                        mack = cd['MACK']
+                        queryset = cmdbackend.get_chart_result(taskid, mack)
+            else:
+                form = ChartForm()
+                queryset = ''
         else:
             form = ChartForm()
-            queryset = ''
+            queryset = cmdbackend.get_chart_result(ref_id, ref_mack)
         context = {
             "message_list": queryset,
             "form": form
         }
+
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
@@ -705,17 +710,32 @@ def taskdashboard(request):
     return render(request, "abnormaldetect/taskdashboard.html", context)   
 
 @csrf_exempt
-def taskresult(request):
+def taskresult(request, id_modelling=''):
     context = {'vendor': 'FSS'}
     try:
-        queryset =  cmdbackend.task_para_get('DASHBOARD')
+        if id_modelling=='':
+            if request.method == "POST":
+                form = ResultForm(request.POST)
+                if form.is_valid():
+                    cd = form.cleaned_data
+                    if 'para_submit' in request.POST:
+                        taskid = cd['ID_MODELLING']
+                        queryset = cmdbackend.get_result_model(taskid)
+            else:
+                form = ResultForm()
+                queryset = ''
+        else:
+            form = ResultForm()
+            queryset = cmdbackend.get_result_model(id_modelling)
         context = {
-            "message_list": queryset,
+            "results": queryset,
+            "form": form,
+            "id_modelling": id_modelling
         }
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
-    return render(request, "abnormaldetect/taskresult.html", context) 
+    return render(request, "abnormaldetect/taskresult.html", context)
 
 @csrf_exempt
 def taskquery(request):

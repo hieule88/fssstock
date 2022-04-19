@@ -1,11 +1,28 @@
 {% extends "abnormaldetect/layout.html" %}
 {% block title %}
-    Chart
+    Result
 {% endblock %}
 {% load crispy_forms_tags %}
 {% block content %}
     {% if user.is_authenticated %}
-    <h1>CHỨC NĂNG ĐANG PHÁT TRIỂN</h1>
+        <h1>Result</h1>
+        <form action = "" method = "POST">
+            <div class="form-row">
+                <div class="form-group col-md-3 mb-0">
+                    {{ form.ID_MODELLING|as_crispy_field }}
+                </div>              
+            </div>
+            <input type="submit" name="para_submit" value="Submit">
+            {% if results %}
+                <script>
+                    $('#sortTable').DataTable();
+                </script>
+                {% with message_list_result=results %}
+                    {% include "abnormaldetect/userprediction_A.html" %}
+                {% endwith %}
+            {% else %}
+            <h4>Data is empty</h4>
+            {% endif %} 
+        </form>
     {% endif %}  
-
 {% endblock %}

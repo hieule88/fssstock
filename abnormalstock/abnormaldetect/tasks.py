@@ -40,8 +40,7 @@ def runETL(v_category, v_year):
 def runtask(p_taskid, ref_id, hyperparams):
     #Mp_taskcd: MODELLING or AUTOMODELLING
     try:
-        results = RUNALLMODEL(p_taskid, ref_id, hyperparams)
-        return results
+        RUNALLMODEL(p_taskid, ref_id, hyperparams)
     except Exception as e:
         raise
 

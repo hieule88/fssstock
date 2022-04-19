@@ -134,6 +134,14 @@ class ChartForm(forms.Form):
                 for id in set_mack]    
     MACK = forms.ChoiceField(choices  = ref_mack, label="MACK")
 
+class ResultForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(ResultForm, self).__init__(*args, **kwargs)
+        set_taskid = cmdbackend.task_get_distinct('RES_PREDICT_FRAUD_2', 'ID_MODELLING')
+        ref_taskid = [(id, id) 
+                    for id in set_taskid]    
+        self.fields['ID_MODELLING'] = forms.ChoiceField(choices  = ref_taskid, label="ID_MODELLING")
+
 class ETLForm(forms.Form):
     # get unique id_modelling
     set_taskid = cmdbackend.task_get_distinct('RES_LOG_CELERY', 'ID_MODELLING')
