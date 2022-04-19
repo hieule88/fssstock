@@ -20,6 +20,7 @@ urlpatterns = [
     # path("base/", views.base, name="base"),
     path("", views.userindex, name="userindex"),
     path("userindex/", views.userindex, name="userindex"),
+    path("userhome/", views.userhome, name="userhome"),
     path("userdatacheck/", views.userdatacheck, name="userdatacheck"),
     path("userdatacheckdetail/<str:refyear>/<str:refarea>/<str:reflinkid>/", views.userdatacheckdetail, name="userdatacheckdetail"),
     path("userreconcile/<slug:reflinkid>/", views.userreconcile, name="userreconcile"),
@@ -30,7 +31,6 @@ urlpatterns = [
     path("userfrauditem/<slug:reflinkid>/", views.userfrauditem, name="userfrauditem"),
     path("userriskprofile/<slug:reflinkid>/", views.userriskprofile, name="userriskprofile"),
     path("usermodel/<slug:reflinkid>/", views.usermodel, name="usermodel"),
-    path("userlogisticmodel/<slug:reflinkid>/", views.userlogisticmodel, name="userlogisticmodel"),
     path("userdecisiontreemodel/<slug:reflinkid>/", views.userdecisiontreemodel, name="userdecisiontreemodel"),
     path("userrandomforestmodel/<slug:reflinkid>/", views.userrandomforestmodel, name="userrandomforestmodel"),
 

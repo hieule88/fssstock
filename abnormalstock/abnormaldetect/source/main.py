@@ -114,16 +114,10 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
     input_end_date=hyperparams['ToDate']
     input_ticker = hyperparams['MaCK']
 
-    if input_start_date == '01/01/2019' and \
-        input_end_date =='01/01/2021' and \
-        input_ticker == 'ALL' :
-        dataset = pd.DataFrame(pd.read_csv('C:/Users/Admin/Desktop/FinancialDetection/code/fssstock/dataset/TradingHistory.csv'))
-        dataset.drop(columns=['Unnamed: 0'], inplace=True)
-    else:
-        if input_ticker == 'ALL':
-            input_ticker = '%'
-        parser = Parser('SP_TA_GET_TICKER_RAWDATA', 'TVHISTORY1D', input_ticker, input_start_date, input_end_date)
-        dataset = parser.dataframe
+    if input_ticker == 'ALL':
+        input_ticker = '%'
+    parser = Parser('SP_TA_GET_TICKER_RAWDATA', 'TVHISTORY1D', input_ticker, input_start_date, input_end_date)
+    dataset = parser.dataframe
 
     tickers = Parser('SP_TA_GET_TICKER_RAWDATA', 'TICKERLIST', input_ticker, input_start_date, input_end_date).dataframe
     preprocessor = PreProcessor(max_params=max_params, replace_nan=replacenan)

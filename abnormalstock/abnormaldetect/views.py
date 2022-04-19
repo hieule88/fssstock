@@ -103,24 +103,22 @@ def usermodel(request, reflinkid=''):
     return render(request, "abnormaldetect/usermodel.html", context)
 
 @csrf_exempt
-def userlogisticmodel(request, reflinkid=''):
+def userhome(request):
     context = {'vendor': 'FSS'}
     try:
-        if reflinkid=='':
-            queryset = ''
-            queryset_scorecard=''
-        else:
-            queryset = cmdbackend.user_model_info(reflinkid, 'L')
-            queryset_scorecard = cmdbackend.user_model_info(reflinkid, 'X')
+        # if request.method == "POST":
+        #     if 'para_submit' in request.POST: 
+        #         print('UPDATING...')
+        cmdbackend.update_top_abnormal(50)
+        heatmap, curr_top = cmdbackend.get_top_abnormal()
         context = {
-            "message_list": queryset,
-            "message_list_scorecard": queryset_scorecard,
-            "linkid": reflinkid
+            "heatmap": heatmap,
+            "message_list": curr_top,
         }    
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
-    return render(request, "abnormaldetect/usershowlogisticmodel.html", context)
+    return render(request, "abnormaldetect/userhome.html", context)
 
 @csrf_exempt
 def userdecisiontreemodel(request, reflinkid=''):

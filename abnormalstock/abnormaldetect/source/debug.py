@@ -1,2 +1,5 @@
 a = None
-print(a)
+if a:
+    print(a)
+else :
+    print('K looxi')

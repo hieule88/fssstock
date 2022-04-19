@@ -1,6 +1,4 @@
-from cProfile import label
-from turtle import title
-from unittest import result
+import io
 import cx_Oracle, time
 import pandas as pd
 from sklearn import tree
@@ -765,84 +763,148 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
         # Re-raise the exception.
         raise        
 
-# GET IMPORTANT FEATURES
+# SOME SUPPORT FUNCTIONS FOR TOP ABNORMAL
 def get_important_features(pticker, pid):
     cursor, conn = connect_data()
-    sql_get_
+    sql_find_if = "SELECT VARIABLE FROM RES_VARIABLE_SCORE_2 WHERE MACK = '{}' AND ID_MODELLING = {}"\
+                    .format(pticker, pid)
+    cursor.execute(sql_find_if)
+    imp_feat = [ind[0] for ind in cursor.fetchall()]
+    return str(imp_feat)
 
-# GET TOP ABNORMAL TO SHOW AT HOME 
-# bug
-# NEED TO HANDLE DUPLICATE MACK
-def update_top_abnormal(top):
-    cursor, conn = connect_data()
-    # GET CURRENT TOP
-    sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
-    cursor.execute(sql_get_new_id)
-    max_index = cursor.fetchall()[0][0]
-
-    sql_get_top = "SELECT MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE \
-                    FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
-    cursor.execute(sql_get_top)
-    curr_top = cursor.fetchall()
-
-    # GET TOP OF NEW MODEL
-    sql_get_new_id = "SELECT MAX(ID_MODELLING) FROM RES_PREDICT_FRAUD_2"
-    cursor.execute(sql_get_new_id)
-    max_index = cursor.fetchall()[0][0]
-
-    cur_date = str(time.ctime())
-    sql_get_scores = "SELECT TOP {} MACK, AVG(ABS(RESIDUALS)), ID_MODELLING FROM RES_PREDICT_FRAUD_2 \
-                    WHERE ID_MODELLING={} GROUP BY MACK \
-                    ORDER BY AVG(ABS(RESIDUALS))".format(top*2, cur_date, max_index)
-    cursor.execute(sql_get_scores)
-    new_model_top50 = cursor.fetchall()
-    
-    # COMPARE TO GET NEW TOP
-    new_top50 = []
-    new_top50_mack = []
-    ind_curr = 0
-    ind_newmodel = 0
-    for ind in range(top) :
-        if ind_curr == len(curr_top):
-            new_top50.append(new_model_top50[ind_newmodel])
-            ind_newmodel = ind_newmodel + 1
-            continue
-        elif ind_newmodel == len(new_model_top50):
-            new_top50.append(curr_top[ind_curr])
-            ind_curr = ind_curr + 1
-            continue
+def insert_top_abnormal(type_of, cursor, conn, taskid, data, bonus_data):
+    try:
+        print(data)
+        print(bonus_data)
+        if type_of == 'CUR':
+            sql_insert_prep = "INSERT INTO RES_TOP_ABNORM (TASKID, MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE) VALUES \
+                                        ({}, '{}', {}, {}, '{}', '{}') "\
+                                        .format(taskid, data[0], data[1], data[2], data[3], data[4])
+        elif type_of == 'NEW': 
+            sql_insert_prep = "INSERT INTO RES_TOP_ABNORM (TASKID, MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE) VALUES \
+                                        ({}, '{}', {}, {}, '{}', '{}') "\
+                                        .format(taskid, data[0], data[1], data[2], bonus_data[0], bonus_data[1])
+        print('loi o day1')
         
-        if curr_top[ind_curr][1] > new_model_top50[ind_newmodel][1]:
-            if curr_top[ind_curr][0] not in new_top50_mack:
-                new_top50.append(curr_top[ind_curr])
-                new_top50_mack.append(curr_top[ind_curr][0])
-            ind_curr = ind_curr + 1 
-        else:
-            if new_model_top50[ind_newmodel][0] not in new_top50_mack:
-                new_top50.append(new_model_top50[ind_newmodel])
-                new_top50_mack.append(new_model_top50[ind_newmodel][0])
-            ind_newmodel = ind_newmodel + 1 
+        cursor.execute(sql_insert_prep)
+        conn.commit()
+        print('loi o day2')
+    except Exception as e:
+        print(e)
+        print('INSERT TOP ABNORMAL FAIL')
+# GET TOP ABNORMAL TO SHOW AT HOME 
+def update_top_abnormal(top):
+    try:
+        cursor, conn = connect_data()
+        # GET CURRENT TOP
+        sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
+        cursor.execute(sql_get_new_id)
+        max_index = cursor.fetchall()[0][0]
+        new_taskid = max_index + 1 
 
-    # INSERT INTO RES_TOP_ABNORMAL
+        sql_get_top = "SELECT MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE \
+                        FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
+        cursor.execute(sql_get_top)
+        curr_top = cursor.fetchall()
+
+        # GET TOP OF NEW MODEL
+        sql_get_new_id = "SELECT MAX(ID_MODELLING) FROM RES_PREDICT_FRAUD_2"
+        cursor.execute(sql_get_new_id)
+        max_index = cursor.fetchall()[0][0]
+
+        print('loi o day 12')
+        sql_get_scores = "SELECT MACK, AVG(ABS(RESIDUALS)), ID_MODELLING FROM RES_PREDICT_FRAUD_2 \
+                        WHERE ID_MODELLING={} GROUP BY MACK, ID_MODELLING \
+                        ORDER BY AVG(ABS(RESIDUALS)) DESC FETCH FIRST {} ROWS ONLY".format(max_index, top*2)
+        cursor.execute(sql_get_scores)
+        new_model_top50 = cursor.fetchall()
+        print('loi o day 4')
+        # COMPARE TO GET NEW TOP
+        # INSERT INTO RES_TOP_ABNORMAL
+        new_top50_mack = []
+        ind_curr = 0
+        ind_newmodel = 0
+        ind = 0
+        cur_date = str(time.ctime())
+        while(ind < top) :
+            if ind_curr == len(curr_top):
+                while(new_model_top50[ind_newmodel][0] in new_top50_mack):
+                    ind_newmodel = ind_newmodel + 1
+                imp_feat = get_important_features(new_model_top50[ind_newmodel][0], new_model_top50[ind_newmodel][2])
+                insert_top_abnormal('NEW', cursor, conn, new_taskid, new_model_top50[ind_newmodel], [imp_feat, cur_date] )
+                new_top50_mack.append(new_model_top50[ind_newmodel][0])
+                ind = ind + 1
+                continue
+            elif ind_newmodel == len(new_model_top50):
+                while(curr_top[ind_curr][0] in new_top50_mack):
+                    ind_curr = ind_curr + 1
+                insert_top_abnormal('CUR', cursor, conn, new_taskid, curr_top[ind_curr],'')
+                new_top50_mack.append(curr_top[ind_curr][0])
+                ind = ind + 1
+                continue
+            
+            while(curr_top[ind_curr][0] in new_top50_mack):
+                ind_curr = ind_curr + 1
+            while(new_model_top50[ind_newmodel][0] in new_top50_mack):
+                ind_newmodel = ind_newmodel + 1
+            if ind_curr == len(curr_top) or ind_newmodel == len(new_model_top50):
+                continue
+
+            if curr_top[ind_curr][1] > new_model_top50[ind_newmodel][1]:
+                insert_top_abnormal('CUR', cursor, conn, new_taskid, curr_top[ind_curr],'')
+                new_top50_mack.append(curr_top[ind_curr][0])
+                ind_curr = ind_curr + 1 
+            else:
+                imp_feat = get_important_features(new_model_top50[ind_newmodel][0], new_model_top50[ind_newmodel][2])
+                insert_top_abnormal('NEW', cursor, conn, new_taskid, new_model_top50[ind_newmodel], [imp_feat, cur_date] )
+                new_top50_mack.append(new_model_top50[ind_newmodel][0])
+                ind_newmodel = ind_newmodel + 1 
+            ind = ind + 1
+        return 'UPDATE TOP ABNORMAL DONE'
+    except Exception as e :
+        print(e)
+        print('UPDATE TOP ABNORMAL UNSUCCESFUL')
 
 # SHOW WHEN HOME PAGE IS LOADED
 def get_top_abnormal():
-    cursor, conn = connect_data()
-    # GET CURRENT TOP
-    sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
-    cursor.execute(sql_get_new_id)
-    max_index = cursor.fetchall()[0][0]
+    try:
+        cursor, conn = connect_data()
+        # GET CURRENT TOP
+        sql_get_new_id = "SELECT MAX(TASKID) FROM RES_TOP_ABNORM"
+        cursor.execute(sql_get_new_id)
+        max_index = cursor.fetchall()[0][0]
 
-    sql_get_top = "SELECT ID_MODELLING, MACK, SCORE, FEATURES, LASTDATE \
-                    FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
-    cursor.execute(sql_get_top)
-    curr_top = cursor.fetchall()
+        sql_get_top = "SELECT ID_MODELLING, MACK, SCORE, FEATURES, LASTDATE \
+                        FROM RES_TOP_ABNORM WHERE TASKID ={} ORDER BY SCORE DESC".format(max_index)
+        cursor.execute(sql_get_top)
+        curr_top = cursor.fetchall()
 
-    list_mack= [infor_mack[1] for infor_mack in curr_top][:15]
-    list_score= [infor_mack[2] for infor_mack in curr_top][:15]
-    heatmap = '.'
+        list_mack = [0]
+        for infor_mack in curr_top:
+            list_mack.append(infor_mack[1])
+        list_mack = list_mack[:16]
+        list_score= [[infor_mack[2] for infor_mack in curr_top][:15]]
 
-    return heatmap, curr_top
+        fig, ax = plt.subplots()
+        ax.set_xticklabels(list_mack)
+        ax.set_yticklabels('')
+        plt.locator_params(axis='x', nbins=15)
+        plt.imshow(list_score, cmap='hot', interpolation='nearest')
+        fig = plt.gcf()
+        fig.set_size_inches(18.5, 10.5)
+        heatmap = io.BytesIO()
+        fig.savefig(heatmap, format='jpeg', dpi= 100)
+        heatmap.seek(0)
+        plt.close()
+        plt.clf()
+
+        heatmap = base64.b64encode(heatmap.read()).decode('utf-8')
+
+        return heatmap, curr_top
+    except Exception as e:
+        print(e)
+        print('SHOW TOP ABNORMAL FAIL')
+        return None, None
 
 def trace_log_modelling(p_reftask):
     cur, conn = connect_data()

@@ -1,0 +1,37 @@
+{% extends "abnormaldetect/base.html" %}
+{% block title %}
+    Home - User mode
+{% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% if user.is_authenticated %}
+    <input type="submit" name="para_submit" value="Update TOP ABNORMAL">
+    {% if heatmap %}
+        <picture>
+            <img src="data:image/jpeg;base64,{{ heatmap }}" alt="Heat Map" width="100%">
+        </picture>
+    {% endif %} 
+    {% if message_list %}
+        <table cellspacing="0" width="100%">
+            <thead style="position: sticky;top: 0" class="thead-dark">
+            <tr>
+                <th class="header" scope="col">ID</th>
+                <th class="header" scope="col">MACK</th>
+                <th class="header" scope="col">Features</th>
+                <th class="header" scope="col">Last Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in message_list %}
+                <tr>
+                    <td>{{ message.0 }}</td>
+                    <td>{{ message.1 }}</td>
+                    <td>{{ message.2 }}</td>
+                    <td>{{ message.3 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>    
+    {% endif %}  
+{% endif %}  
+{% endblock %}
