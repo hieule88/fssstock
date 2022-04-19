@@ -1,8 +1,5 @@
 # Requirements:
 * Setup cx_Oracle for python like Tax Fraud Detection app  
-* Download all stocks dataset from 01/01/2019 to 01/01/2021 via ggdrive link below to reduce loading data time from DB: 
-https://drive.google.com/drive/folders/1uAiCKAaxvi0QKL9RjuSOAiAuzqZzqhJQ?usp=sharing
-* The file names: TradingHistory.csv
 * Create folder for project, example: FSS_stock
 # CMD for Setup :
 * cd FSS_stock
@@ -13,8 +10,9 @@ https://drive.google.com/drive/folders/1uAiCKAaxvi0QKL9RjuSOAiAuzqZzqhJQ?usp=sha
 * cd ../..
 * cd fssstock
 * pip install -r requirements.txt
-# Some changes for the path to TradingHistory.csv:
-* In the file abnormalstock/abnormaldetect/source/main.py , line 60 , change the path to the TradingHistory.csv's path on your computer
 # Now Run
 * cd abnormalstock
 * python manage.py runserver
+* Open another CMD
+* cd abnormalstock
+* celery -A abnormalstock worker --time-limit 259200 --loglevel INFO --pool=solo --without-gossip --max-tasks-per-child=1 -n worker1@stock 
