@@ -6,8 +6,8 @@
 {% block content %}
     {% if user.is_authenticated %}
     <h1>AUTO RUN</h1>
-    <form action = "" method = "POST">
-        <!--{% csrf_token %} -->
+    <h2>Chức năng đang sửa chữa</h2>
+    <!-- <form action = "" method = "POST">
         <div class="form-row">
             <div class="form-group col-md-8 mb-0">
                 {{ form.Data|as_crispy_field }}
@@ -44,6 +44,6 @@
         {% else %}
             <p>Data is empty</p>
         {% endif %}  
-        </form>
+        </form> -->
     {% endif %}  
 {% endblock %}
