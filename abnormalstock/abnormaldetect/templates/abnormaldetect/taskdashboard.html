@@ -15,7 +15,6 @@
                     <th class="header" scope="col">Dataset</th>
                     <th class="header" scope="col">Parameter</th>
                     <th class="header" scope="col">Number of Detected Abnormals</th>
-                    <th class="header" scope="col">Important Features</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -32,7 +31,6 @@
                         {{ message.4 }}
                     </td>
                     <td>{{ message.5 }}</td>
-                    <td><a href="{% url 'taskresult' %}">(+)</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

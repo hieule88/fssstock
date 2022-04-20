@@ -16,3 +16,11 @@
 * Open another CMD
 * cd abnormalstock
 * celery -A abnormalstock worker --time-limit 259200 --loglevel INFO --pool=solo --without-gossip --max-tasks-per-child=1 -n worker1@stock 
+# RELATED TABLE
+* ALLCODE2
+* RES_LOG_CELERY
+* RES_PREDICT_FRAUD_2
+* RES_VAR_IMG
+* RES_VARIABLE_SCORE_2
+* RES_TOP_ABNORM
+* TASKLOG_V2

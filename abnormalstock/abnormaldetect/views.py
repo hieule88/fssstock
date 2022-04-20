@@ -21,35 +21,31 @@ from datetime import datetime
 #-----------------------------------------------------------------------------------------------
 @csrf_exempt
 def userindex(request):
+    context = {'vendor': 'FSS'}
     try:
-        taxcode=''
+        mack=''
         queryset = ''
-        queryset_rating = ''
         if request.method == "POST":
             form = UserIndexForm(request.POST)
             if form.is_valid():
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST:
-                    taxcode = cd['TaxCode']
-                    queryset =  cmdbackend.user_taxcode_inquiry(taxcode,'P')
-                    queryset_rating =  cmdbackend.user_taxcode_inquiry(taxcode,'R')
+                    mack = cd['MaCK']
+                    queryset =  cmdbackend.user_search_mack(mack)
         else:
             form = UserIndexForm()
             queryset = ''
-            taxcode=''
 
         context = {
             "message_list": queryset,
-            "message_list_rating": queryset_rating,
-            "taxcode": taxcode,
-            "form": form
+            "form": form,
+            "mack": mack
         }
         #Show result on screen
-        return render(request, "abnormaldetect/userindex.html", context)
     except Exception as e:
         just_the_string = traceback.format_exc()
         messages.add_message(request, messages.ERROR, just_the_string)
-        return render(request, "abnormaldetect/userindex.html", context)
+    return render(request, "abnormaldetect/userindex.html", context)
 
 @csrf_exempt
 def usermodel(request, reflinkid=''):
@@ -102,18 +98,25 @@ def usermodel(request, reflinkid=''):
         messages.add_message(request, messages.ERROR, just_the_string)
     return render(request, "abnormaldetect/usermodel.html", context)
 
+# debug
+# see userindex.html
+# USER HOMEPAGE
 @csrf_exempt
 def userhome(request):
     context = {'vendor': 'FSS'}
     try:
-        # if request.method == "POST":
-        #     if 'para_submit' in request.POST: 
-        #         print('UPDATING...')
-        cmdbackend.update_top_abnormal(50)
+        show_feat = False
+        if request.method == "POST":
+            if 'para_submit' in request.POST: 
+                print('UPDATING...')
+                cmdbackend.update_top_abnormal(50)
+            if 'para_show' in request.POST:
+                show_feat = True
         heatmap, curr_top = cmdbackend.get_top_abnormal()
         context = {
             "heatmap": heatmap,
             "message_list": curr_top,
+            "show_feat": show_feat
         }    
     except Exception as e:
         just_the_string = traceback.format_exc()
@@ -844,6 +847,7 @@ def taskmodelling(request):
     try:
         results = []
         taskcd='MODELLING'
+        id_modelling = ''
         if request.method == "POST":
             form = ModellingForm(request.POST)
             if form.is_valid():
@@ -851,7 +855,7 @@ def taskmodelling(request):
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data'] #reftaskid:: id of labelling
                     paracontent = cmdbackend.trace_log_modelling(reftaskid) #taskid: id of modelling
-                    results = cmdbackend.task_pipeline_submit(taskcd,reftaskid,paracontent, '', '')
+                    id_modelling, results = cmdbackend.task_pipeline_submit(taskcd,reftaskid,paracontent, '', '')
                     # cmdbackend.user_prediction(taskid, reftaskid, 1000)
         else:
             form = ModellingForm()   
@@ -860,7 +864,8 @@ def taskmodelling(request):
         context = {
             "message_list": queryset,
             "results": results,
-            "form": form
+            "form": form,
+            "id_modelling": id_modelling
         }    
     except Exception as e:
         just_the_string = traceback.format_exc()

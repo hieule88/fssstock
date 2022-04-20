@@ -18,7 +18,7 @@ home_list_view = views.HomeListView.as_view(
 urlpatterns = [
     #User mode version
     # path("base/", views.base, name="base"),
-    path("", views.userindex, name="userindex"),
+    path("", views.userhome, name="userhome"),
     path("userindex/", views.userindex, name="userindex"),
     path("userhome/", views.userhome, name="userhome"),
     path("userdatacheck/", views.userdatacheck, name="userdatacheck"),

@@ -5,33 +5,52 @@
 {% load crispy_forms_tags %}
 {% block content %}
 {% if user.is_authenticated %}
-    <input type="submit" name="para_submit" value="Update TOP ABNORMAL">
+    <h1>FSS Abnormal Stock Detection</h1>
     {% if heatmap %}
-        <picture>
-            <img src="data:image/jpeg;base64,{{ heatmap }}" alt="Heat Map" width="100%">
-        </picture>
+    <picture >
+        <img src="data:image/jpeg;base64,{{ heatmap }}" alt="Heat Map" width="100%">
+    </picture>
     {% endif %} 
+
+    <form method="POST">
+        <input type="submit" name="para_submit" value="Update TOP ABNORMAL">
+    </form>
+    <p>
+        <h4>*Click to ID value to show Model Result</h4>
+        <h4>*Click to MACK value to show Chart</h4>
+    </p>
     {% if message_list %}
-        <table cellspacing="0" width="100%">
-            <thead style="position: sticky;top: 0" class="thead-dark">
+    <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
+        <thead style="position: sticky;top: 0" class="thead-dark">
             <tr>
                 <th class="header" scope="col">ID</th>
                 <th class="header" scope="col">MACK</th>
+                <th class="header" scope="col">Score</th>
                 <th class="header" scope="col">Features</th>
                 <th class="header" scope="col">Last Date</th>
             </tr>
             </thead>
             <tbody>
-            {% for message in message_list %}
+                {% for message in message_list %}
                 <tr>
-                    <td>{{ message.0 }}</td>
-                    <td>{{ message.1 }}</td>
+                    <td><a href="{% url 'taskresult_param' message.0 %}" >{{ message.0 }}</a></td>
+                    <td><a href="{% url 'taskchart_param' message.0 message.1 %}" >{{ message.1 }}</a></td>
                     <td>{{ message.2 }}</td>
-                    <td>{{ message.3 }}</td>
+                    {% if show_feat %}
+                        <td>{{ message.3 }}</td>
+                    {% else %}
+                        <form method="POST">
+                            <td><input type="submit" name="para_show" value="(+)"></td>
+                        </form>
+                    {% endif %}  
+                    <td>{{ message.4 }}</td>
                 </tr>
             {% endfor %}
             </tbody>
-        </table>    
+        </table>  
+        <script>
+            $('#sortTable').DataTable();
+        </script>  
     {% endif %}  
 {% endif %}  
 {% endblock %}

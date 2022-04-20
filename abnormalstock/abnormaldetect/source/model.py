@@ -88,6 +88,67 @@ def binning(scoreconvert, scorethresh, datacolumn):
                     elif datacolumn.at[i, 'Score'] < bins[3]:
                         datacolumn.at[i, 'Score'] =4
 
+        elif scoreconvert == '10-binning':
+            if max_col <= scorethresh :
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_max = (max_col - scorethresh )/10
+                bins = [i*bin_len_max for i in range(10)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] <= bins[0] and datacolumn.at[i, 'Score'] >= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] > bins[0] and datacolumn.at[i, 'Score'] <= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] > bins[1] and datacolumn.at[i, 'Score'] <= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] > bins[2] and datacolumn.at[i, 'Score'] <= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] > bins[3] and datacolumn.at[i, 'Score'] <= bins[4]:
+                        datacolumn.at[i, 'Score'] =4
+                    elif datacolumn.at[i, 'Score'] > bins[4] and datacolumn.at[i, 'Score'] <= bins[5]:
+                        datacolumn.at[i, 'Score'] =5
+                    elif datacolumn.at[i, 'Score'] > bins[5] and datacolumn.at[i, 'Score'] <= bins[6]:
+                        datacolumn.at[i, 'Score'] =6
+                    elif datacolumn.at[i, 'Score'] > bins[6] and datacolumn.at[i, 'Score'] <= bins[7]:
+                        datacolumn.at[i, 'Score'] =7
+                    elif datacolumn.at[i, 'Score'] > bins[7] and datacolumn.at[i, 'Score'] <= bins[8]:
+                        datacolumn.at[i, 'Score'] =8
+                    elif datacolumn.at[i, 'Score'] > bins[8] and datacolumn.at[i, 'Score'] <= bins[9]:
+                        datacolumn.at[i, 'Score'] =9
+                    elif datacolumn.at[i, 'Score'] > bins[9]:
+                        datacolumn.at[i, 'Score'] =10
+
+            if min_col >= scorethresh*(-1.0) : 
+                for i in datacolumn.index:
+                    datacolumn.at[i, 'Score'] =0
+            else: 
+                bin_len_min = (min_col - scorethresh*(-1.0))/10
+                bins = [i*bin_len_min for i in range(10)]
+                for i in datacolumn.index:
+                    if datacolumn.at[i, 'Score'] >= bins[0] and datacolumn.at[i, 'Score'] <= 0:
+                        datacolumn.at[i, 'Score'] =0
+                    elif datacolumn.at[i, 'Score'] < bins[0] and datacolumn.at[i, 'Score'] >= bins[1]:
+                        datacolumn.at[i, 'Score'] =1
+                    elif datacolumn.at[i, 'Score'] < bins[1] and datacolumn.at[i, 'Score'] >= bins[2]:
+                        datacolumn.at[i, 'Score'] =2
+                    elif datacolumn.at[i, 'Score'] < bins[2] and datacolumn.at[i, 'Score'] >= bins[3]:
+                        datacolumn.at[i, 'Score'] =3
+                    elif datacolumn.at[i, 'Score'] < bins[3] and datacolumn.at[i, 'Score'] >= bins[4]:
+                        datacolumn.at[i, 'Score'] =4
+                    elif datacolumn.at[i, 'Score'] < bins[4] and datacolumn.at[i, 'Score'] >= bins[5]:
+                        datacolumn.at[i, 'Score'] =5
+                    elif datacolumn.at[i, 'Score'] < bins[5] and datacolumn.at[i, 'Score'] >= bins[6]:
+                        datacolumn.at[i, 'Score'] =6
+                    elif datacolumn.at[i, 'Score'] < bins[6] and datacolumn.at[i, 'Score'] >= bins[7]:
+                        datacolumn.at[i, 'Score'] =7
+                    elif datacolumn.at[i, 'Score'] < bins[7] and datacolumn.at[i, 'Score'] >= bins[8]:
+                        datacolumn.at[i, 'Score'] =8
+                    elif datacolumn.at[i, 'Score'] < bins[8] and datacolumn.at[i, 'Score'] >= bins[9]:
+                        datacolumn.at[i, 'Score'] =9
+                    elif datacolumn.at[i, 'Score'] < bins[9]:
+                        datacolumn.at[i, 'Score'] =10
+
         return datacolumn
 
 def find_anomalies(squared_errors):

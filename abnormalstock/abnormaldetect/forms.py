@@ -8,7 +8,7 @@ from abnormalstock import settings
 import cx_Oracle
 class UserIndexForm(forms.Form):
     #Query riskprofile of DTNT
-    TaxCode = forms.CharField(label = "TaxCode", required = True)
+    MaCK = forms.CharField(label = "MaCK", required = True)
 
 class UserReconcileForm(forms.Form):
     #Query reconcile data

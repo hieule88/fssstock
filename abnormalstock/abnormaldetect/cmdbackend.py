@@ -12,6 +12,72 @@ from abnormaldetect.source.upload_to_db import connect_data
 from datetime import datetime
 from abnormaldetect import admin
 
+# USER SEARCH
+def user_search_mack(pticker):
+    try:
+        cursor, conn = connect_data()
+        sql_search_infor = "SELECT ID_MODELLING, COUNT(MACK), AVG(ABS(RESIDUALS)) FROM RES_PREDICT_FRAUD_2 \
+                            WHERE MACK='{}' GROUP BY MACK, ID_MODELLING".format(pticker.upper())
+        cursor.execute(sql_search_infor)
+        infor_res_predict = cursor.fetchall()
+
+        outputs = []
+        for infor in infor_res_predict:
+            taskid = infor[0]
+            output = []
+            output.append(taskid)
+            output.append(infor[1])
+            output.append(infor[2])
+            
+            sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
+            cursor.execute(sql_query)
+            id_labelling = cursor.fetchall()[0][0]
+            sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(taskid)
+            cursor.execute(sql_query)
+            model_param = cursor.fetchall()[0][0]
+
+            sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(id_labelling)
+            cursor.execute(sql_query)
+            label_param = cursor.fetchall()[0][0]
+
+
+            sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(id_labelling)
+            cursor.execute(sql_query)
+            id_preprocess = cursor.fetchall()[0][0]
+
+            sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKCD='PREPROCESSING' AND TASKID={}".format(id_preprocess)
+            cursor.execute(sql_query)
+            preprocess_param = cursor.fetchall()[0][0]
+
+            # GET MODEL
+            title_params = preprocess_param.split(': ')[0].split('/')
+            model = 0
+            for tit in range(len(title_params)):
+                if title_params[tit] == 'METHOD':
+                    model = tit
+            model_name = preprocess_param.split(': ')[1].split('/')[model]
+            output.append(model_name.upper())
+
+            # GET PARAM
+            output.append('MODELLING: ' + model_param)
+            output.append('PREPROCESSING: ' + preprocess_param)
+            output.append('LABELLING: ' + label_param)
+
+            # GET DATASET
+            sql_query = "SELECT REFID FROM TASKLOG_V2 WHERE TASKID={}".format(id_preprocess)
+            cursor.execute(sql_query)
+            refversion = cursor.fetchall()[0][0]
+            sql_query = "SELECT PARACONTENT FROM TASKLOG_V2 WHERE TASKID={}".format(refversion)
+            cursor.execute(sql_query)
+            refdata = cursor.fetchall()[0][0]
+            output.append('DATASET: ' + refdata)
+            
+            outputs.append(output)
+        return outputs
+    except Exception as e :
+        print(e)
+        return ''
+
 #User checking data
 def func_modelid_variable(v_modelid):    
     try:
@@ -746,7 +812,7 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             celery_results = tasks.runtask.apply_async(args=[task_id, ref_id, hyperparams])
             while not celery_results.ready():
                 pass
-            results = get_result_model(task_id)
+            results = task_id, get_result_model(task_id)
 
         else:
             sql_findref = "SELECT REFVERSION FROM TASKLOG_V2 WHERE TASKID={}".format(p_reftaskid)
@@ -774,21 +840,14 @@ def get_important_features(pticker, pid):
 
 def insert_top_abnormal(type_of, cursor, conn, taskid, data, bonus_data):
     try:
-        print(data)
-        print(bonus_data)
+        sql_insert_prep = "INSERT INTO RES_TOP_ABNORM (TASKID, MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE) VALUES \
+                                    (:1, :2, :3, :4, :5, :6)"
         if type_of == 'CUR':
-            sql_insert_prep = "INSERT INTO RES_TOP_ABNORM (TASKID, MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE) VALUES \
-                                        ({}, '{}', {}, {}, '{}', '{}') "\
-                                        .format(taskid, data[0], data[1], data[2], data[3], data[4])
+            cursor.execute(sql_insert_prep, [taskid, data[0], data[1], data[2], data[3], data[4]])
         elif type_of == 'NEW': 
-            sql_insert_prep = "INSERT INTO RES_TOP_ABNORM (TASKID, MACK, SCORE, ID_MODELLING, FEATURES, LASTDATE) VALUES \
-                                        ({}, '{}', {}, {}, '{}', '{}') "\
-                                        .format(taskid, data[0], data[1], data[2], bonus_data[0], bonus_data[1])
-        print('loi o day1')
+            cursor.execute(sql_insert_prep, [taskid, data[0], data[1], data[2], bonus_data[0], bonus_data[1]])
         
-        cursor.execute(sql_insert_prep)
         conn.commit()
-        print('loi o day2')
     except Exception as e:
         print(e)
         print('INSERT TOP ABNORMAL FAIL')
@@ -812,13 +871,12 @@ def update_top_abnormal(top):
         cursor.execute(sql_get_new_id)
         max_index = cursor.fetchall()[0][0]
 
-        print('loi o day 12')
         sql_get_scores = "SELECT MACK, AVG(ABS(RESIDUALS)), ID_MODELLING FROM RES_PREDICT_FRAUD_2 \
                         WHERE ID_MODELLING={} GROUP BY MACK, ID_MODELLING \
                         ORDER BY AVG(ABS(RESIDUALS)) DESC FETCH FIRST {} ROWS ONLY".format(max_index, top*2)
         cursor.execute(sql_get_scores)
         new_model_top50 = cursor.fetchall()
-        print('loi o day 4')
+
         # COMPARE TO GET NEW TOP
         # INSERT INTO RES_TOP_ABNORMAL
         new_top50_mack = []
@@ -889,17 +947,15 @@ def get_top_abnormal():
         ax.set_xticklabels(list_mack)
         ax.set_yticklabels('')
         plt.locator_params(axis='x', nbins=15)
-        plt.imshow(list_score, cmap='hot', interpolation='nearest')
+        plt.imshow(list_score, cmap='viridis', interpolation='nearest')
         fig = plt.gcf()
-        fig.set_size_inches(18.5, 10.5)
+        fig.set_size_inches(18.5, 2)
         heatmap = io.BytesIO()
         fig.savefig(heatmap, format='jpeg', dpi= 100)
         heatmap.seek(0)
         plt.close()
         plt.clf()
-
         heatmap = base64.b64encode(heatmap.read()).decode('utf-8')
-
         return heatmap, curr_top
     except Exception as e:
         print(e)
