@@ -796,7 +796,8 @@ def task_pipeline_submit(p_taskcd, p_reftaskid, p_paracontent, p_exttaskid, p_ex
             hyperparams['LowMemory']  = preprocessing[12]
             hyperparams['CovType']  = preprocessing[13]
             hyperparams['Level']  = preprocessing[14]
-            hyperparams['HasConstant']  = preprocessing[15].split(']')[0]
+            hyperparams['HasConstant']  = preprocessing[15]
+            hyperparams['SmallSample']  = preprocessing[16].split(']')[0]
 
             hyperparams['FIThreshold'] = labelling[0].split('[')[1]
             hyperparams['TopFeature'] = labelling[1]

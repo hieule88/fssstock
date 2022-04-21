@@ -105,18 +105,14 @@ def usermodel(request, reflinkid=''):
 def userhome(request):
     context = {'vendor': 'FSS'}
     try:
-        show_feat = False
         if request.method == "POST":
             if 'para_submit' in request.POST: 
                 print('UPDATING...')
                 cmdbackend.update_top_abnormal(50)
-            if 'para_show' in request.POST:
-                show_feat = True
         heatmap, curr_top = cmdbackend.get_top_abnormal()
         context = {
             "heatmap": heatmap,
             "message_list": curr_top,
-            "show_feat": show_feat
         }    
     except Exception as e:
         just_the_string = traceback.format_exc()
@@ -720,8 +716,8 @@ def taskresult(request, id_modelling=''):
                 if form.is_valid():
                     cd = form.cleaned_data
                     if 'para_submit' in request.POST:
-                        taskid = cd['ID_MODELLING']
-                        queryset = cmdbackend.get_result_model(taskid)
+                        id_modelling = cd['ID_MODELLING']
+                        queryset = cmdbackend.get_result_model(id_modelling)
             else:
                 form = ResultForm()
                 queryset = ''
@@ -883,7 +879,7 @@ def taskpreprocessing(request):
                 cd = form.cleaned_data
                 if 'para_submit' in request.POST: 
                     reftaskid = cd['Data']
-                    para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE/ENTITYEFFECTS/TIMEEFFECTS/OTHEREFFECTS/USELSDV/USELSMR/LOWMEMORY/COVTYPE/LEVEL/HASCONSTANT: ['
+                    para_content = 'STATIONARITYTEST/DIFFTYPE/REPLACENAN/MINTRADEDAY/METHOD/MAXLAG/FEATUREIMPORTANCE/ENTITYEFFECTS/TIMEEFFECTS/OTHEREFFECTS/USELSDV/USELSMR/LOWMEMORY/COVTYPE/LEVEL/HASCONSTANT/SMALLSAMPLE: ['
                     para_content = para_content + cd['StationarityTest'] + '/'
                     para_content = para_content + cd['DiffTest'] + '/'
                     para_content = para_content + cd['ReplaceNan'] + '/'
@@ -901,6 +897,7 @@ def taskpreprocessing(request):
                     para_content = para_content + cd['CovType'] + '/'
                     para_content = para_content + cd['Level'] + '/'
                     para_content = para_content + cd['HasConstant'] + ']'
+                    para_content = para_content + cd['SmallSample'] + ']'
                     cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
         else:
             form = PreprocessingForm()   

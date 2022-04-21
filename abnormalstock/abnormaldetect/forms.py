@@ -217,6 +217,7 @@ class PreprocessingForm(forms.Form):
     CovType = forms.ChoiceField(label = "COVTYPE", choices  = admin.PARAMS['COVTYPE'], required= False) 
     Level = forms.ChoiceField(label = "LEVEL", choices  = admin.PARAMS['LEVEL'], required= False)
     HasConstant = forms.ChoiceField(label = "HASCONSTANT", choices  = admin.PARAMS['HASCONSTANT'], required= False)
+    SmallSample = forms.ChoiceField(label = "SMALLSAMPLE", choices  = admin.PARAMS['SMALLSAMPLE'], required= False)
 
 class LabellingForm(forms.Form):
     v_group='DEF_LABELLING'

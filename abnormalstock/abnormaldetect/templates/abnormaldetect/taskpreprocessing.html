@@ -50,7 +50,10 @@
             </div>                
             <div class="form-group col-md-2 mb-0">
                 {{ form.HasConstant|as_crispy_field }}
-            </div>                
+            </div>     
+            <div class="form-group col-md-2 mb-0">
+                {{ form.LowMemory|as_crispy_field }}
+            </div>           
         </div>
         <div class="form-row">
             <div class="form-group col-md-2 mb-0">
@@ -60,7 +63,7 @@
                 {{ form.UseLsmr|as_crispy_field }}
             </div>            
             <div class="form-group col-md-2 mb-0">
-                {{ form.LowMemory|as_crispy_field }}
+                {{ form.SmallSample|as_crispy_field }}
             </div>                
             <div class="form-group col-md-2 mb-0">
                 {{ form.CovType|as_crispy_field }}
@@ -74,12 +77,12 @@
         <h3>Parameters:</h3>
         <table class="table table-striped table-bordered" id="sortTable" cellspacing="0" width="100%">
             <thead style="position: sticky;top: 0" class="thead-dark">
-            <tr>
-              <th class="header" scope="col">NAME</th>
-              <th class="header" scope="col">MEANING</th>                      
-              <th class="header" scope="col">VALUE</th>
-              <th class="header" scope="col">NOTE</th>
-          </tr>
+                <tr>
+                <th class="header" scope="col">NAME</th>
+                <th class="header" scope="col">MEANING</th>                      
+                <th class="header" scope="col">VALUE</th>
+                <th class="header" scope="col">NOTE</th>
+                </tr>
             </thead>
             <tbody>
                 <tr>
@@ -122,10 +125,67 @@
                     <td>FEATUREIMPORTANCE</td>
                     <td>Lựa chọn phương pháp tính độ quan trọng của các features</td>
                     <td>Corr, varcorr</td>
-                    <td>Khi giá trị là corr tính theo phương pháp tương quan giữa các biến, khi giá trị là varcorr tính correlation theo mô hình VAR </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>ENTITYEFFECTS</td>
+                    <td>Có bao gồm các Entity effect (fixed) trong mô hình hay không</td>
+                    <td>0, 1</td>
+                    <td>Fem</td>
+                </tr>
+                <tr>
+                    <td>TIMEEFFECTS</td>
+                    <td>Có đưa các Time effect vào mô hình hay không</td>
+                    <td>0, 1</td>
+                    <td>Fem</td>
+                </tr>
+                <tr>
+                    <td>OTHEREFFECTS</td>
+                    <td>Để sử dụng bất kỳ hiệu ứng nào không phải là Entity hoặc Time effect. Mỗi biến được coi như một hiệu ứng.</td>
+                    <td>0</td>
+                    <td>Fem: Cần thử nghiệm thêm</td>
+                </tr>
+                <tr>
+                    <td>USELSDV</td>
+                    <td>Sử dụng công cụ ước tính Least Squares Dummy Variable để loại bỏ các effect.</td>
+                    <td>0, 1</td>
+                    <td>Fem: Giá trị mặc định chỉ sử dụng các giá trị trung bình và không lưu ý yêu cầu xây dựng các biến giả cho mỗi effect.</td>
+                </tr>
+                <tr>
+                    <td>USELSMR</td>
+                    <td>Sử dụng LSDV với công cụ ước lượng Sparse Equations và Least Squares để loại bỏ các fixed effect.</td>
+                    <td>0, 1</td>
+                    <td>Fem</td>
+                </tr>
+                <tr>
+                    <td>LOWMEMORY</td>
+                    <td>Dùng khi với low-memory algorithm cho two way effect, none là auto khi max memory > 1GB</td>
+                    <td>0, 1</td>
+                    <td>Fem: chỉ nên chọn 0 or -1, và thử chọn 0 nếu máy mạnh</td>
+                </tr>
+                <tr>
+                    <td>SMALLSAMPLE</td>
+                    <td>Áp dụng hiệu chỉnh mẫu nhỏ để ước tính phương sai của random effect.</td>
+                    <td>0, 1</td>
+                    <td>Rem</td>
+                </tr>
+                <tr>
+                    <td>COVTYPE</td>
+                    <td>Tên của công cụ ước lượng hiệp phương sai.</td>
+                    <td>unadjusted, robust, clustered</td>
+                    <td>Rem/Fem</td>
+                </tr>
+                <tr>
+                    <td>LEVEL</td>
+                    <td>Độ tin cậy ước lượng khoảng</td>
+                    <td>0.95</td>
+                    <td>Rem/Fem</td>
                 </tr>
             </tbody>
         </table>
+        <script>
+            $('#sortTable').DataTable();
+          </script> 
         {% if message_list %}
             <h3>Task log: Preprocessing</h3>
             {% with message_list_ref=message_list %}
