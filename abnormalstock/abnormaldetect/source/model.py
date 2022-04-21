@@ -246,8 +246,6 @@ class VarModel():
         non_stationary_cols = [col for col in ticker_feature.columns \
                                 if not self.test_stationarity(ticker_feature, column=col, type= self.stationtest)]
 
-        real_close = ticker_feature['close']
-
         for col in non_stationary_cols:
             ticker_feature[col] = self.differencing(ticker_feature, col, 1)
         # find selected_lag
@@ -282,6 +280,9 @@ class VarModel():
 
                 #add correlation
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
+
+                # PREDICT AND RETRANSFORM PRICE 25-step
+                # predict_val = var_fitresults.forecast(y= ticker_feature.values[-8:], steps=25)
 
                 # retransform_residual, predict_close_cost = self.retransform(ticker_feature['close'][selected_lag:], residual.values)
                 

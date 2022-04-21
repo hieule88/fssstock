@@ -896,7 +896,7 @@ def taskpreprocessing(request):
                     para_content = para_content + cd['LowMemory'] + '/'
                     para_content = para_content + cd['CovType'] + '/'
                     para_content = para_content + cd['Level'] + '/'
-                    para_content = para_content + cd['HasConstant'] + ']'
+                    para_content = para_content + cd['HasConstant'] + '/'
                     para_content = para_content + cd['SmallSample'] + ']'
                     cmdbackend.task_pipeline_submit(taskcd,reftaskid,para_content,0,'')
         else:
