@@ -214,30 +214,24 @@ class VarModel():
         if self.difftest == 'diffty':
             differenced_data = data[column].diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
-            differenced_data.fillna(0, inplace=True)
-            return differenced_data
-        elif self.difftest == 'log':
-            differenced_data = data[column].apply(np.log)
-            differenced_data.interpolate(method='ffill', order=2, inplace=True)
-            differenced_data.fillna(0, inplace=True)
-            return differenced_data
         elif self.difftest == 'cbrt':
             differenced_data = data[column].apply(np.cbrt)
             differenced_data.interpolate(method='ffill', order=2, inplace=True)
-            differenced_data.fillna(0, inplace=True)
-            return differenced_data
-        elif self.difftest == 'log&diffty':
-            differenced_data = data[column].apply(np.log)
-            differenced_data = differenced_data.diff(order)
-            differenced_data.fillna(differenced_data.mean(), inplace=True)
-            differenced_data.fillna(0, inplace=True)
-            return differenced_data  
         elif self.difftest == 'cbrt&diffty':
             differenced_data = data[column].apply(np.cbrt)
             differenced_data = differenced_data.diff(order)
             differenced_data.fillna(differenced_data.mean(), inplace=True)
-            differenced_data.fillna(0, inplace=True)
-            return differenced_data            
+        differenced_data.fillna(0, inplace=True)
+        return differenced_data            
+
+    def reverse_data(self, data, bonus_data=''):
+        if self.difftest == 'diffty':
+            data['PriceForecast'] = bonus_data['Money'].iloc[-1] + data['Money1d'].cumsum()
+        elif self.difftest == 'cbrt':
+            data['PriceForecast'] = data['PriceForecast'].pow(3)
+        elif self.difftest == 'cbrt&diffty':
+            data['PriceForecast'] = bonus_data['Money'].iloc[-1] + data['Money1d'].cumsum()
+            data['PriceForecast'] = data['PriceForecast'].pow(3)
 
     def process(self, dataset, p_ticker):
         ticker_feature = dataset.loc[dataset['name']==p_ticker].drop(columns='name')
@@ -282,9 +276,10 @@ class VarModel():
                 top = self.feature_importance(ticker_feature, column_to_model, selected_lag)
 
                 # PREDICT AND RETRANSFORM PRICE 25-step
-                # predict_val = var_fitresults.forecast(y= ticker_feature.values[-8:], steps=25)
+                # predict_val = var_fitresults.forecast(y= ticker_feature.values[selected_lag*(-1):], steps=25)
+                # df_forecast = pd.DataFrame(data=predict_val, columns=column_to_model)
 
-                # retransform_residual, predict_close_cost = self.retransform(ticker_feature['close'][selected_lag:], residual.values)
+                # price_predicted = self.retransform(df_forecast['close'], ticker_feature['close'][-1])
                 
                 # return TXDate, Score Fraud, Residual, Top Features, Squared Error, Threshold, Real Close Cost
                 return data[['TXDATE', 'Score', 'Residual']].loc[data['Predictions'] ==1], \
@@ -352,9 +347,9 @@ class FemModel():
         name = pd.Categorical(data.name)
         # data['TXDATE'] = data['TXDATE'].apply(parser.parse)
         data["name"] = name
-        txdate = pd.Categorical(data.TXDATE)
-        data = data.set_index(["name", "TXDATE"])
-        data["TXDATE"] = txdate
+        # data["TXDATE"] = pd.to_datetime(data["TXDATE"])
+        txdate = data["TXDATE"]
+        data.set_index(["name", "TXDATE"], inplace=True)
         dependent = 'close'
         exog = list(data.columns)
         exog.remove(dependent)
@@ -363,11 +358,10 @@ class FemModel():
                         time_effects= self.time_effects)
                         
         print('Call model DONE')
-        res = model.fit()
-        # res = model.fit(use_lsdv = self.use_lsdv, use_lsmr = self.use_lsmr, \
-        #                 low_memory = self.low_memory, cov_type = self.cov_type)
+        res = model.fit(use_lsdv = self.use_lsdv, use_lsmr = self.use_lsmr, \
+                        low_memory = self.low_memory, cov_type = self.cov_type)
         print('Fit model DONE')
-        quit()
+        
         resid = res.resids
         price_errors = pd.DataFrame(resid)
         price_errors.rename(columns={'residual': 'Score'}, inplace=True)

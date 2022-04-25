@@ -236,9 +236,9 @@ def RUNALLMODEL(taskid, ref_id, hyperparams):
                 else:
                     data_all_tickers = pd.concat([data_all_tickers, ticker_infor], axis = 0)
                 success = success+1
-                if success == 3:
-                    print('Successed !!!')
-                    break
+                # if success == 10:
+                #     print('Successed !!!')
+                #     break
             except Exception as e:
                 count_error = count_error+1
                 print(str(e) + ' at Ticker: ', p_ticker)
